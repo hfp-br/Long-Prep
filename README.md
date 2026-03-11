@@ -10,25 +10,16 @@ Em muitos jogos o inventário é apenas uma grade simples.
 Neste projeto, a proposta é criar um sistema onde:
 
 📦 Itens possuem forma e tamanho
-
 ⚖️ Existe peso e física
-
 🪨 Objetos colidem e se empilham
-
 🎒 A mochila funciona como um container físico
-
 🖱️ O jogador pode arrastar e manipular os itens
 
 🛠 Tecnologias utilizadas
-
 🎮 Raylib — renderização gráfica e input
-
 ⚙️ Box2D — física 2D (colisão, gravidade, corpos rígidos)
-
 🧱 C++
-
 🔧 CMake — sistema de build multiplataforma
-
 As dependências são baixadas automaticamente usando FetchContent, então não é necessário instalar bibliotecas manualmente.
 
 🚀 Como rodar o projeto
@@ -42,9 +33,7 @@ cmake --build build
 4️⃣ Executar
 
 Linux:
-
 ./build/meu_jogo
 
 Windows:
-
 build/Debug/meu_jogo.exe
