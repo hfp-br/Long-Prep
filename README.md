@@ -6,8 +6,8 @@ físico dentro da mochila.
 
 
 A ideia é transformar o inventário em um espaço interativo, onde os objetos realmente caem, se empilham e ocupam espaço, em vez de apenas existir em slots estáticos.
-
-
+ 
+ 
 🧠 Ideia do Projeto
 
 
@@ -25,9 +25,9 @@ Neste projeto, a proposta é criar um sistema onde:
 🎒 A mochila funciona como um container físico
 
 🖱️ O jogador pode arrastar e manipular os itens
-
-
-
+ 
+ 
+ 
 🛠 Tecnologias utilizadas
 
 🎮 Raylib — renderização gráfica e input
