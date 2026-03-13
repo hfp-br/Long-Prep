@@ -2,7 +2,9 @@
 #include <string>
 using namespace std;
 
-Class Item{
+enum weaponType{sword=1,polearm=2,bow=3}; // enumeração para escolher o tipo de arma da classe weapon
+
+class Item{
 
 	private:				// Aqui estão as variáveis privadas da classe Item que não devem ser acessadas por qualquer um
 
@@ -10,15 +12,15 @@ Class Item{
 		float weight;		// Esse é o peso do item
 		int size;			// Esse é o tamanho do item
 		bool equipable;		// Esse é um booleano que indica se o item pode ser equipado ou não
-		bool consumable		// Esse é um booleano que indica se o item pode ser consumido ou não
+		bool consumable;		// Esse é um booleano que indica se o item pode ser consumido ou não
 
 	public:						// Aqui estão as funções públicas da classe Item que podem ser acessadas por qualquer um
 
-		item(string name, float weight, int size, bool equipable, bool consumable) {	// essa função serve para criar um item 
+		Item(string name, float weight, int size, bool equipable, bool consumable) {	// essa função serve para criar um item 
 			this->name = name;
 			this->weight = weight;
 			this->size = size;
-			this->equipable = equipable;
+			this->equipable =equipable;
 			this->consumable = consumable;
 		}
 
@@ -28,7 +30,7 @@ Class Item{
 		float getWeight( ) { return weight; }		// função para pegar o peso do item
 		int getSize( ) { return size; }				// função para pegar o tamanho do item
 		bool isEquipable( ) { return equipable; }	// função para saber se é quipavel o item
-		bool isConsumable( ) { return Consumable; }	// função para saber se é consumivel o item
+		bool isConsumable( ) { return consumable; }	// função para saber se é consumivel o item
 
 		// Aqui eu deixei as funções relacionadas a atribuir algum valor para o item
 
@@ -70,4 +72,14 @@ Class Item{
 			consumable = c;
 		}
 
-}
+};
+
+class weapon : public Item{
+
+	private:
+		int damage;
+		int range;
+		int type;
+
+
+};
