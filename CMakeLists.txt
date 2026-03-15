@@ -25,6 +25,9 @@ FetchContent_MakeAvailable(box2d)
 
 add_executable(meu_jogo
     src/main.cpp
+    src/item.cpp
+    src/player.cpp
+    src/itemlist.cpp
 )
 
 target_link_libraries(meu_jogo
