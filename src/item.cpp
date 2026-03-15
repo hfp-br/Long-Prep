@@ -30,6 +30,7 @@ class Item {
 
     public:                 // Aqui estão as funções públicas da classe Item que podem ser acessadas por qualquer um
 
+        // CORRIGIDO: construtor deve ter o mesmo nome da classe (Item, não CraftItem)
         Item(string name, float weight, int size, bool equipable, bool consumable) {
             this->name = name;
             this->weight = weight;
@@ -94,6 +95,8 @@ class Weapon : public Item {
         int type;
 
     public:
+        // CORRIGIDO: construtor deve ter o mesmo nome da classe (Weapon, não CraftWeapon)
+        // CORRIGIDO: inicialização da classe base deve usar o nome correto (Item, não CraftItem)
         Weapon(string name, float weight, int size, bool equipable, bool consumable, int damage, int range, int type)
             : Item(name, weight, size, equipable, consumable) {
             this->damage = damage;
@@ -139,6 +142,8 @@ class Potion : public Item {
         int type;    // variavel para definir o tipo de poção, usando um Enum
 
     public:
+        // CORRIGIDO: construtor deve ter o mesmo nome da classe (Potion, não CraftPotion)
+        // CORRIGIDO: inicialização da classe base deve usar o nome correto (Item, não CraftItem)
         Potion(string name, float weight, int size, bool equipable, bool consumable, int healing, int damage, int type)
             : Item(name, weight, size, equipable, consumable) {
             this->healing = healing;
