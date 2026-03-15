@@ -8,6 +8,6 @@
 
 Weapon espadacurtaweapon("espada curta",5,3,true,false,5,5,1);
 ItemData espadacurtaData = {&espadacurtaweapon};
-physicalData espadacurtaPhysical = {4,2,0,false};
+physicalData espadacurtaPhysical = {100,100,0,false};
 
 ItemTemplate espadacurta = {&espadacurtaData,espadacurtaPhysical};

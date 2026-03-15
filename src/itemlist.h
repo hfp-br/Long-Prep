@@ -26,7 +26,7 @@ struct ItemTemplate {
 };
 
 struct physicalObject {
-    ItemTemplate* templateData;
+    ItemTemplate templateData;
     b2BodyId bodyId;
 };
 

@@ -3,6 +3,7 @@
 #include "box2d/types.h"
 #include "item.h"
 #include "itemlist.h"
+#include <asm-generic/errno.h>
 #include <raylib.h>
 #include <box2d/box2d.h>
 #include <cmath>
@@ -12,6 +13,7 @@
 #define scale 10
 
 bool MousePressed = false;
+extern ItemTemplate espadacurta;
 
 //gerador rapido de paredes
 physicalObject WallGenerator(b2WorldId world, float xP, float yP,float width, float height, enum b2BodyType type){ 
@@ -23,8 +25,8 @@ physicalObject WallGenerator(b2WorldId world, float xP, float yP,float width, fl
     b2ShapeDef bodyshapeDef = b2DefaultShapeDef(); //coloca o formato como quadrado padrao do box2d 
     b2CreatePolygonShape(bodyId, &bodyshapeDef, &bodyBox); //aplica o formato e a caixa em um poligono 
     physicalObject Parede;
-    Parede.templateData->itemPhysical.width = width;
-    Parede.templateData->itemPhysical.height = height;
+    Parede.templateData.itemPhysical.width = width;
+    Parede.templateData.itemPhysical.height = height;
     Parede.bodyId = bodyId;
 
     return Parede;
@@ -49,9 +51,9 @@ physicalObject ItemGenerator(b2WorldId world, bool isCircle ,float xP, float yP,
         b2CreateCircleShape(bodyId, &ballshapeDef, &circle);
     }
     physicalObject Item;
-    Item.templateData->itemPhysical.width = width;
-    Item.templateData->itemPhysical.height = height;
-    Item.templateData->itemPhysical.radius = radius;
+    Item.templateData.itemPhysical.width = width;
+    Item.templateData.itemPhysical.height = height;
+    Item.templateData.itemPhysical.radius = radius;
     Item.bodyId = bodyId;
 
     return Item;
@@ -77,7 +79,7 @@ void Grab(physicalObject body,float reverseWeight){
         b2Body_SetLinearVelocity(body.bodyId, speed);
     }
 
-    if(CheckCollisionCircleRec((Vector2){pos.x,pos.y}, body.templateData->itemPhysical.radius/scale, mouseHitbox)){
+    if(CheckCollisionCircleRec((Vector2){pos.x,pos.y}, body.templateData.itemPhysical.radius/scale, mouseHitbox)){
         if(IsMouseButtonDown(0)){
             MousePressed=true;
         }
@@ -109,9 +111,16 @@ int main()
     BackpackWalls.push_back(WallGenerator(world, screenWidth/2+180, screenHeight/2+100, 10, 400,b2_staticBody));
     
     physicalObject ball = ItemGenerator(world, true, screenWidth/2, screenHeight/2-100, 0, 0, 10, b2_dynamicBody);
-    physicalObject espadacurta = ItemGenerator(world, espadacurta.templateData->itemPhysical.isCircle, screenWidth/2+100, screenHeight/2-100, 
-        espadacurta.templateData->itemPhysical.width, espadacurta.templateData->itemPhysical.height, 
-        espadacurta.templateData->itemPhysical.radius, b2_dynamicBody);
+    physicalObject espadaObj = ItemGenerator(
+        world,
+        espadacurta.itemPhysical.isCircle,
+        screenWidth/2+100,
+        screenHeight/2-100,
+        espadacurta.itemPhysical.width,
+        espadacurta.itemPhysical.height,
+        espadacurta.itemPhysical.radius,
+        b2_dynamicBody
+    );
     
     while (!WindowShouldClose())
     {
@@ -130,8 +139,8 @@ int main()
             float x = pos.x * scale;
             float y = pos.y * scale;
 
-            DrawRectangle(x - body.templateData->itemPhysical.width/2, y - body.templateData->itemPhysical.height/2, 
-                body.templateData->itemPhysical.width, body.templateData->itemPhysical.height, RED);
+            DrawRectangle(x - body.templateData.itemPhysical.width/2, y - body.templateData.itemPhysical.height/2, 
+                body.templateData.itemPhysical.width, body.templateData.itemPhysical.height, RED);
         }
 
         for(int i=0; i<1; i++){
@@ -140,15 +149,25 @@ int main()
             float x = pos.x * scale;
             float y = pos.y * scale;
     
-            DrawCircle(x, y, ball.templateData->itemPhysical.radius, GREEN);
+            DrawCircle(x, y, ball.templateData.itemPhysical.radius, GREEN);
         }
         for(int i=0; i<1; i++){
-            b2Vec2 pos = b2Body_GetPosition(ball.bodyId);
-    
+            b2Vec2 pos = b2Body_GetPosition(espadaObj.bodyId);
+            b2Rot rot = b2Body_GetRotation(espadaObj.bodyId);
+
             float x = pos.x * scale;
             float y = pos.y * scale;
-    
-            DrawCircle(x, y, ball.templateData->itemPhysical.radius, GREEN);
+            float angle = b2Rot_GetAngle(rot) * RAD2DEG;
+
+            float width = espadaObj.templateData.itemPhysical.width;
+            float height = espadaObj.templateData.itemPhysical.height;
+
+            DrawRectanglePro(
+                (Rectangle){ x, y, width, height },
+                (Vector2){ width / 2.0f, height / 2.0f },
+                angle,
+                GREEN
+            );
         }
 
         EndDrawing();
