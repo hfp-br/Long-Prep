@@ -13,7 +13,6 @@
 #define scale 10
 
 bool MousePressed = false;
-extern ItemTemplate espadacurta;
 
 //gerador rapido de paredes
 physicalObject WallGenerator(b2WorldId world, float xP, float yP,float width, float height, enum b2BodyType type){ 
@@ -32,34 +31,34 @@ physicalObject WallGenerator(b2WorldId world, float xP, float yP,float width, fl
     return Parede;
 }
 
-physicalObject ItemGenerator(b2WorldId world, bool isCircle ,float xP, float yP,float width, float height, float radius, enum b2BodyType type){ 
+physicalObject ItemGenerator(b2WorldId world, ItemTemplate& templ,float xP, float yP, enum b2BodyType type){ 
     b2BodyDef bodyDef = b2DefaultBodyDef(); //definebody 
     bodyDef.position = {(xP)/scale, (yP)/scale}; //define posicao inicial 
     bodyDef.type = type;
     b2BodyId bodyId = b2CreateBody(world, &bodyDef); //cria o "perfil" no mundo 
-    if(!isCircle){
-        b2Polygon bodyBox = b2MakeBox((width/2)/scale, (height/2)/scale); //cria uma caixa com o tamanho definido 
+    if(!templ.itemPhysical.isCircle){
+        b2Polygon bodyBox = b2MakeBox((templ.itemPhysical.width/2)/scale, (templ.itemPhysical.height/2)/scale); //cria uma caixa com o tamanho definido 
         b2ShapeDef bodyshapeDef = b2DefaultShapeDef(); //coloca o formato como quadrado padrao do box2d 
         bodyshapeDef.density = 1.0f;
         b2CreatePolygonShape(bodyId, &bodyshapeDef, &bodyBox); //aplica o formato e a caixa em um poligono 
     } else {
         b2Circle circle;
         circle.center = {0.0f, 0.0f};
-        circle.radius = radius/scale;
+        circle.radius = templ.itemPhysical.radius/scale;
         b2ShapeDef ballshapeDef = b2DefaultShapeDef();
         ballshapeDef.density = 1.0f;
         b2CreateCircleShape(bodyId, &ballshapeDef, &circle);
     }
     physicalObject Item;
-    Item.templateData.itemPhysical.width = width;
-    Item.templateData.itemPhysical.height = height;
-    Item.templateData.itemPhysical.radius = radius;
+    Item.templateData.itemPhysical.width = templ.itemPhysical.width;
+    Item.templateData.itemPhysical.height = templ.itemPhysical.height;
+    Item.templateData.itemPhysical.radius = templ.itemPhysical.radius;
     Item.bodyId = bodyId;
 
     return Item;
 }
 
-void Grab(physicalObject body,float reverseWeight){
+void Grab(physicalObject& body,float reverseWeight){
     Rectangle mouseHitbox = (Rectangle){(float)GetMouseX()/scale,(float)GetMouseY()/scale,5,5};
 
     b2Vec2 pos = b2Body_GetPosition(body.bodyId);
@@ -79,9 +78,14 @@ void Grab(physicalObject body,float reverseWeight){
         b2Body_SetLinearVelocity(body.bodyId, speed);
     }
 
+    if(IsMouseButtonUp(0)){
+            MousePressed=false;
+    }
+
     if(CheckCollisionCircleRec((Vector2){pos.x,pos.y}, body.templateData.itemPhysical.radius/scale, mouseHitbox)){
         if(IsMouseButtonDown(0)){
             MousePressed=true;
+
         }
         if(IsMouseButtonUp(0)){
             MousePressed=false;
@@ -102,7 +106,7 @@ int main()
 
 
     b2WorldDef worldDef = b2DefaultWorldDef();
-    worldDef.gravity = {0.0f, 9.8f};
+    worldDef.gravity = {0.0f, 20};
     b2WorldId world = b2CreateWorld(&worldDef);
 
     std::vector<physicalObject> BackpackWalls;
@@ -110,17 +114,11 @@ int main()
     BackpackWalls.push_back(WallGenerator(world, screenWidth/2-135, screenHeight/2+100, 10, 400,b2_staticBody));
     BackpackWalls.push_back(WallGenerator(world, screenWidth/2+180, screenHeight/2+100, 10, 400,b2_staticBody));
     
-    physicalObject ball = ItemGenerator(world, true, screenWidth/2, screenHeight/2-100, 0, 0, 10, b2_dynamicBody);
-    physicalObject espadaObj = ItemGenerator(
-        world,
-        espadacurta.itemPhysical.isCircle,
-        screenWidth/2+100,
-        screenHeight/2-100,
-        espadacurta.itemPhysical.width,
-        espadacurta.itemPhysical.height,
-        espadacurta.itemPhysical.radius,
-        b2_dynamicBody
-    );
+
+    std::vector<physicalObject> TotalItems;
+    for(int i=0; i<5; i++){
+        TotalItems.push_back(ItemGenerator(world, espadacurta, (screenWidth/2)+(i*50)-50, screenHeight/2-100, b2_dynamicBody));
+    }
     
     while (!WindowShouldClose())
     {
@@ -128,7 +126,9 @@ int main()
         
         b2World_Step(world, dt, 4);
         
-        Grab(ball,15);
+        for(physicalObject& body : TotalItems){
+            Grab(body, 15);
+        }
 
         BeginDrawing();
         ClearBackground(WHITE);
@@ -143,24 +143,17 @@ int main()
                 body.templateData.itemPhysical.width, body.templateData.itemPhysical.height, RED);
         }
 
-        for(int i=0; i<1; i++){
-            b2Vec2 pos = b2Body_GetPosition(ball.bodyId);
-    
-            float x = pos.x * scale;
-            float y = pos.y * scale;
-    
-            DrawCircle(x, y, ball.templateData.itemPhysical.radius, GREEN);
-        }
-        for(int i=0; i<1; i++){
-            b2Vec2 pos = b2Body_GetPosition(espadaObj.bodyId);
-            b2Rot rot = b2Body_GetRotation(espadaObj.bodyId);
+
+        for(const physicalObject& body: TotalItems){
+            b2Vec2 pos = b2Body_GetPosition(body.bodyId);
+            b2Rot rot = b2Body_GetRotation(body.bodyId);
 
             float x = pos.x * scale;
             float y = pos.y * scale;
             float angle = b2Rot_GetAngle(rot) * RAD2DEG;
 
-            float width = espadaObj.templateData.itemPhysical.width;
-            float height = espadaObj.templateData.itemPhysical.height;
+            float width = body.templateData.itemPhysical.width;
+            float height = body.templateData.itemPhysical.height;
 
             DrawRectanglePro(
                 (Rectangle){ x, y, width, height },

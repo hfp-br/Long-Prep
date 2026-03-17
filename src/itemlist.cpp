@@ -6,8 +6,8 @@
 
 //teste pra ver se ta criando o item direito
 
-Weapon espadacurtaweapon("espada curta",5,3,true,false,5,5,1);
-ItemData espadacurtaData = {&espadacurtaweapon};
-physicalData espadacurtaPhysical = {100,100,0,false};
+ Weapon espadacurtaweapon("espada curta",5,3,true,false,5,5,1);
+ ItemData espadacurtaData = {&espadacurtaweapon};
+ physicalData espadacurtaPhysical = {25,25,0,false};
 
-ItemTemplate espadacurta = {&espadacurtaData,espadacurtaPhysical};
+ ItemTemplate espadacurta = {&espadacurtaData,espadacurtaPhysical};
