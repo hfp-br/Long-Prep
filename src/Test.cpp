@@ -4,7 +4,7 @@
 #include "player.h"
 using namespace std;
 
-int action(Player h, Weapon w, Potion p){
+int action(Weapon w, Potion p){
 	int numero = 0;
 
 	// CORRIGIDO: condição do while estava errada (|| deve ser &&)
@@ -22,7 +22,6 @@ int action(Player h, Weapon w, Potion p){
 int main() {
 
 	int numero;
-	int numeroAI;
 	int aleatorio;
 	int dano;
 	int vida;
@@ -43,7 +42,7 @@ int main() {
 
 	// CORRIGIDO: isAlive() é uma função, precisa de () para chamá-la
 	while(heroi.isAlive() == true && vilao.isAlive() == true){
-		numero = action(heroi, espadaHeroi, pocao);
+		numero = action(espadaHeroi, pocao);
 		switch(numero){
 			case 1:
 				cout << "O heroi " << heroi.getName() << " pegou a espada " << espadaHeroi.getName() << " e cortou o vilao " << vilao.getName() << endl;
