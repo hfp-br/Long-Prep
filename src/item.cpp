@@ -27,16 +27,17 @@ class Item {
         int size;           // Esse é o tamanho do item
         bool equipable;     // Esse é um booleano que indica se o item pode ser equipado ou não
         bool consumable;    // Esse é um booleano que indica se o item pode ser consumido ou não
+        string textura;     // Essa string é responsavel por armazenar a localizacão da textura do item
 
     public:                 // Aqui estão as funções públicas da classe Item que podem ser acessadas por qualquer um
 
-        // CORRIGIDO: construtor deve ter o mesmo nome da classe (Item, não CraftItem)
-        Item(string name, float weight, int size, bool equipable, bool consumable) {
+        Item(string name, float weight, int size, bool equipable, bool consumable, string textura ) {
             this->name = name;
             this->weight = weight;
             this->size = size;
             this->equipable = equipable;
             this->consumable = consumable;
+            this->textura = textura;
         }
 
         // Aqui eu deixei as funções relacionadas a pegar alguma informação do item
@@ -46,6 +47,7 @@ class Item {
         int getSize()       { return size; }        // função para pegar o tamanho do item
         bool isEquipable()  { return equipable; }   // função para saber se é equipável o item
         bool isConsumable() { return consumable; }  // função para saber se é consumível o item
+        string getTextura() { return textura; }     // função para pegar a textura
 
         // Aqui eu deixei as funções relacionadas a atribuir algum valor para o item
 
@@ -85,6 +87,11 @@ class Item {
             consumable = c;
         }
 
+        void setTextura(string nomeArquivo, string extensaoArquivo) { // função para atribuir a textura do item
+            textura = nomeArquivo + "." + extensaoArquivo; // por enquanto so coloquei para ser o nome do arquivo + a extensão dele
+                                                           // porque não sei como a nosssa biblioteca grafica localiza as textura e as utiliza
+        }
+
 }; // classe do item
 
 class Weapon : public Item {
@@ -94,11 +101,8 @@ class Weapon : public Item {
         int range;
         int type;
 
-    public:
-        // CORRIGIDO: construtor deve ter o mesmo nome da classe (Weapon, não CraftWeapon)
-        // CORRIGIDO: inicialização da classe base deve usar o nome correto (Item, não CraftItem)
-        Weapon(string name, float weight, int size, bool equipable, bool consumable, int damage, int range, int type)
-            : Item(name, weight, size, equipable, consumable) {
+        Weapon(string name, float weight, int size, bool equipable, bool consumable, string textura, int damage, int range, int type)
+            : Item(name, weight, size, equipable, consumable, textura) {
             this->damage = damage;
             this->range = range;
             this->type = type;
@@ -142,10 +146,8 @@ class Potion : public Item {
         int type;    // variavel para definir o tipo de poção, usando um Enum
 
     public:
-        // CORRIGIDO: construtor deve ter o mesmo nome da classe (Potion, não CraftPotion)
-        // CORRIGIDO: inicialização da classe base deve usar o nome correto (Item, não CraftItem)
-        Potion(string name, float weight, int size, bool equipable, bool consumable, int healing, int damage, int type)
-            : Item(name, weight, size, equipable, consumable) {
+        Potion(string name, float weight, int size, bool equipable, bool consumable, string textura, int healing, int damage, int type)
+            : Item(name, weight, size, equipable, consumable, textura) {
             this->healing = healing;
             this->damage = damage;
             this->type = type;

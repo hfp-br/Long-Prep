@@ -14,11 +14,10 @@ class Player {
 		bool alive;				//Booleana para saber se o player esta vivo ou morto
 		bool weapon_equip;		//Booleana para saber se o player esta com uma arma equipada
 		bool potion_equip;		//Booleana para saber se o player esta com uma poção equipada
+		string textura;         //Variavel para armazenar a localizção da textura
 
 	public:
-
-		// CORRIGIDO: construtor deve ter o mesmo nome da classe (Player, não Craftplayer)
-		Player(string name, int life, int life_max, int damage, float weight_capacity, bool backpack, bool alive, bool weapon_equip, bool potion_equip){		//função para criar um player
+		Player(string name, int life, int life_max, int damage, float weight_capacity, bool backpack, bool alive, bool weapon_equip, bool potion_equip, string textura){		//função para criar um player
 			this->name = name;
 			this->life = life;
 			this->life_max = life_max;
@@ -28,6 +27,7 @@ class Player {
 			this->alive = alive;
 			this->weapon_equip = weapon_equip;
 			this->potion_equip = potion_equip;
+			this->textura = textura;
 		};
 
 		string getName() { return name; }						//função para pegar o nome do player
@@ -39,13 +39,13 @@ class Player {
 		bool isAlive() { return alive; }						//função para verificar se o player esta vivo
 		bool isWeapon_Equip() { return weapon_equip; }			//função para verificar se o player esta com arma equipada
 		bool isPotion_Equip() { return potion_equip; }			//função para verificar se o player esta com poção equipada
+        string getTextura() { return textura; }     			//função para pegar a textura
 
 		void setName(string n){				//função para definir o nome do player
 			name = n;
 		}
 
 		void setLife(int l){				//função para definir a vida do player
-			// CORRIGIDO: a comparação deve usar o parâmetro 'l', não a variável 'life'
 			if(l > life_max){
 				cout << "Erro: A vida maxima nao pode ser excedida" <<endl;
 				return;
@@ -54,7 +54,6 @@ class Player {
 		}
 
 		void setLife_Max(int l){			//função para definir a vida maxima do player
-			// CORRIGIDO: deve atribuir à life_max, não à life
 			life_max = l;
 		}
 
@@ -81,5 +80,10 @@ class Player {
 		void setPotion_Equip(bool p){		//função para definir se o player esta com poção equipada
 			potion_equip = p;
 		}
+
+		void setTextura(string nomeArquivo, string extensaoArquivo) { // função para atribuir a textura do item
+            textura = nomeArquivo + "." + extensaoArquivo; // por enquanto so coloquei para ser o nome do arquivo + a extensão dele
+                                                           // porque não sei como a nosssa biblioteca grafica localiza as textura e as utiliza
+        }
 
 };

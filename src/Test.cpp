@@ -6,9 +6,6 @@ using namespace std;
 
 int action(Weapon w, Potion p){
 	int numero = 0;
-
-	// CORRIGIDO: condição do while estava errada (|| deve ser &&)
-	// Com ||, a condição NUNCA seria falsa, causando loop infinito
 	while(numero != 1 && numero != 2){
 		cout << "Escolha uma das seguintes acoes" << endl;
 		cout << "1. Usar a " << w.getName() << endl;
@@ -40,17 +37,16 @@ int main() {
 
 	cout << "Atencao o heroi " << heroi.getName() << " e o grande vilao " << vilao.getName() << " Entraram em uma batalha " << endl;
 
-	// CORRIGIDO: isAlive() é uma função, precisa de () para chamá-la
 	while(heroi.isAlive() == true && vilao.isAlive() == true){
 		numero = action(espadaHeroi, pocao);
 		switch(numero){
 			case 1:
 				cout << "O heroi " << heroi.getName() << " pegou a espada " << espadaHeroi.getName() << " e cortou o vilao " << vilao.getName() << endl;
 				aleatorio = gerarAleatorio(0, 75);
-				// CORRIGIDO: getDamage() e getLife() são funções, precisam de ()
+
 				dano = heroi.getDamage() + espadaHeroi.getDamage() - aleatorio;
 				vilao.setLife(vilao.getLife() - dano);
-				// CORRIGIDO: verificar se o vilão morreu após receber dano
+
 				if(vilao.getLife() <= 0){
 					vilao.setLife(0);
 					vilao.setAlive(false);
@@ -60,10 +56,10 @@ int main() {
 			case 2:
 				cout << "O heroi " << heroi.getName() << " pegou a pocao " << pocao.getName() << " e bebeu" << endl;
 				aleatorio = gerarAleatorio(0, 20);
-				// CORRIGIDO: getHealing() e getLife() são funções, precisam de ()
+
 				vida = pocao.getHealing() - aleatorio;
 				vida = vida + heroi.getLife();
-				// CORRIGIDO: getLife_max() é função, precisa de ()
+
 				if(vida > heroi.getLife_max()){
 					vida = heroi.getLife_max();
 				}
@@ -72,7 +68,7 @@ int main() {
 				break;
 		}
 
-		// CORRIGIDO: getLife(), getLife_max() são funções, precisam de ()
+
 		if(vilao.isAlive() && vilao.getLife() < (vilao.getLife_max() / 2))
 		{
 			cout << "O vilao " << vilao.getName() << " pegou a pocao " << pocao.getName() << " e bebeu" << endl;
@@ -89,10 +85,10 @@ int main() {
 		{
 			cout << "O vilao " << vilao.getName() << " pegou a espada " << espadaVilao.getName() << " e cortou o heroi " << heroi.getName() << endl;
 			aleatorio = gerarAleatorio(0, 75);
-			// CORRIGIDO: getDamage() e getLife() são funções, precisam de ()
+
 			dano = vilao.getDamage() + espadaVilao.getDamage() - aleatorio;
 			heroi.setLife(heroi.getLife() - dano);
-			// CORRIGIDO: verificar se o herói morreu após receber dano
+
 			if(heroi.getLife() <= 0){
 				heroi.setLife(0);
 				heroi.setAlive(false);
@@ -101,7 +97,6 @@ int main() {
 		}
 	}
 
-	// CORRIGIDO: mostrar quem venceu a batalha
 	if(heroi.isAlive()){
 		cout << "O heroi " << heroi.getName() << " venceu a batalha!" << endl;
 	} else {
