@@ -1,14 +1,21 @@
 #ifndef ITEMLIST_H
 #define ITEMLIST_H
 
+#include "raylib.h"
 #include "box2d/id.h"
 #include "item.h"
 
+void InitItemList();
+
 struct physicalData {
+    Texture2D texture;
     float width;
     float height;
     float radius;
     bool isCircle;
+    float visualWidth;
+    float visualHeight;
+    bool isClicked;
 };
 
 struct ItemData {
@@ -17,14 +24,20 @@ struct ItemData {
 
 struct ItemTemplate {
     ItemData* itemData;
-    physicalData itemPhysical;
+    physicalData* itemPhysical;
 };
 
 struct physicalObject {
     ItemTemplate templateData;
+    physicalData wallData;
+    bool isWall;
+    bool isGrabbed = false;
     b2BodyId bodyId;
+    b2ShapeId shapeId;
 };
 
 extern ItemTemplate espadacurta;
+extern ItemTemplate cuboslime;
+extern ItemTemplate pocaomisteriosa;
 
 #endif
