@@ -5,6 +5,10 @@
 #include <string>
 #include <random>
 
+#define CAT_PAREDE  0x0001
+#define CAT_ITEM    0x0002
+#define CAT_ITEMSEGURADO  0x0004
+
 enum weaponType { sword = 1, polearm = 2, bow = 3 };
 enum potionType { support = 1, aggressive = 2, mystery = 3 };
 enum amount { small = 1, medium = 2, big = 3 };
