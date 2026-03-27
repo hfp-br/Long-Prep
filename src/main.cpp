@@ -31,8 +31,6 @@ physicalObject WallGenerator(b2WorldId world, float xP, float yP,float width, fl
     Parede.wallData = {(Texture2D){1},(float)width, (float)height, 0, false};
     Parede.bodyId = bodyId;
     return Parede;
-
-    return Parede;
 }
 
 physicalObject ItemGenerator(b2WorldId world, ItemTemplate& templ, float xP, float yP, enum b2BodyType type){ 
@@ -129,15 +127,35 @@ int main()
     SetTargetFPS(60);
     InitItemList();
     
-    
+    Texture2D openbackpackTex = LoadTexture("images/open backpack.png");
+    Texture2D equipamentTab = LoadTexture("images/tab.png");
+    Image backgroundimage = LoadImage("images/fundo.png");
+    ImageFormat(&backgroundimage, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    Texture2D backgroundtexture = LoadTextureFromImage(backgroundimage);
+
+    if(true){
+        ImageBlurGaussian(&backgroundimage, 10);
+    }
+
+    Color *pixels = LoadImageColors(backgroundimage); 
+    UpdateTexture(backgroundtexture, pixels);
+    UnloadImageColors(pixels);
+
     b2WorldDef worldDef = b2DefaultWorldDef();
     worldDef.gravity = {0.0f, 20};
     b2WorldId world = b2CreateWorld(&worldDef);
     
+    float backpackCenterX = screenWidth / 2.0f-10;
+    float backpackCenterY = screenHeight / 2.0f-25;
+    float backpackScale = 0.75;
+
+    float backpackW = openbackpackTex.width/1.5 * backpackScale;
+    float backpackH = openbackpackTex.height * backpackScale;
+
     std::vector<physicalObject> BackpackWalls;
-    BackpackWalls.push_back(WallGenerator(world, screenWidth/2, screenHeight/2+275, 400, 10,b2_staticBody));
-    BackpackWalls.push_back(WallGenerator(world, screenWidth/2-145, screenHeight/2+100, 10, 400,b2_staticBody));
-    BackpackWalls.push_back(WallGenerator(world, screenWidth/2+190, screenHeight/2+100, 10, 400,b2_staticBody));
+    BackpackWalls.push_back(WallGenerator(world, backpackCenterX, backpackCenterY + backpackH*0.38f, backpackW*0.95f, 10, b2_staticBody));   // chão
+    BackpackWalls.push_back(WallGenerator(world, backpackCenterX - backpackW*0.46f, backpackCenterY, 10, backpackH*0.75f, b2_staticBody));   // parede esq
+    BackpackWalls.push_back(WallGenerator(world, backpackCenterX + backpackW*0.46f, backpackCenterY, 10, backpackH*0.75f, b2_staticBody));   // parede dir
     
     
     std::vector<physicalObject> TotalItems;
@@ -147,7 +165,6 @@ int main()
     TotalItems.push_back(ItemGenerator(world, espadacurta, (screenWidth/2)+(2*50)-50, screenHeight/2-100, b2_dynamicBody));
     TotalItems.push_back(ItemGenerator(world, pocaomisteriosa, (screenWidth/2+150), screenHeight/2-400, b2_dynamicBody));
     
-    Texture2D openbackpackTex = LoadTexture("images/open backpack.png");
     
     
     while (!WindowShouldClose())
@@ -162,9 +179,10 @@ int main()
         
         BeginDrawing();
         ClearBackground(WHITE);
+        DrawTexture(backgroundtexture,0,0,WHITE);
+        DrawTextureEx(equipamentTab, (Vector2){screenWidth/2-(float)(equipamentTab.width/4)+420,screenHeight/2-(float)(equipamentTab.height/4)-50}, 0, 0.6, WHITE);
+        DrawTextureEx(openbackpackTex, (Vector2){screenWidth/2-(float)(openbackpackTex.width/4)-150,screenHeight/2-(float)(openbackpackTex.height/4)-150}, 0, backpackScale, WHITE);
         
-        DrawTextureEx(openbackpackTex, (Vector2){screenWidth/2-(float)(openbackpackTex.width/4)-45,screenHeight/2-(float)(openbackpackTex.height/4)+20}, 0, 0.6, WHITE);
-
         /*
         for (const physicalObject& body : BackpackWalls) {
             b2Vec2 pos = b2Body_GetPosition(body.bodyId);
@@ -180,6 +198,8 @@ int main()
         */
         
         
+        
+        
         for (const physicalObject& body : TotalItems) {
             b2Rot rot = b2Body_GetRotation(body.bodyId);
             b2Vec2 pos = b2Body_GetPosition(body.bodyId);
@@ -192,7 +212,7 @@ int main()
 
             Texture2D tex = body.templateData.itemPhysical->texture;
             
-
+            
             DrawTexturePro(
                 body.templateData.itemPhysical->texture,
                 (Rectangle){0, 0, (float)body.templateData.itemPhysical->texture.width, 
