@@ -32,6 +32,7 @@ struct physicalObject {
     physicalData wallData;
     bool isWall;
     bool isGrabbed = false;
+    bool isEquipped = false;
     b2BodyId bodyId;
     b2ShapeId shapeId;
 };

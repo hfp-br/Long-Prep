@@ -1,6 +1,5 @@
-#ifndef ITEMLIST_H
-#define ITEMLIST_H
-
+#ifndef EQUIPAMENT_H
+#define EQUIPAMENT_H
 #include "raylib.h"
 #include "box2d/id.h"
 

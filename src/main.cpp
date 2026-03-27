@@ -3,6 +3,7 @@
 #include "box2d/types.h"
 #include "item.h"
 #include "itemlist.h"
+#include "Equipament.h"
 #include <asm-generic/errno.h>
 #include <raylib.h>
 #include <box2d/box2d.h>
@@ -81,6 +82,7 @@ void grab(physicalObject& body){
 
         if(GrabbedObject == &body){
             GrabbedObject = nullptr;
+            body.isGrabbed=false;
         }
     }
     
@@ -93,7 +95,7 @@ void grab(physicalObject& body){
     if(GrabbedObject == &body){
         b2Vec2 direction = {mousePoint.x - pos.x, mousePoint.y - pos.y};
         b2Vec2 speed = {direction.x * (body.templateData.itemData->item->getWeight()*10), direction.y * (body.templateData.itemData->item->getWeight()*10)};
-        
+        body.isGrabbed=true;
         b2Filter filter = b2Shape_GetFilter(body.shapeId);
         filter.maskBits = CAT_ITEM;
         b2Shape_SetFilter(body.shapeId, filter);
@@ -111,6 +113,57 @@ void grab(physicalObject& body){
             angle += 4 * DEG2RAD;
             b2Rot newRot = b2MakeRot(angle);
             b2Body_SetTransform(body.bodyId,pos,newRot);
+        }
+    }
+}
+
+void PivotChecker(physicalObject& body, InventoryPivotPoint ponto){
+    if(body.isGrabbed){
+        
+        b2Vec2 itemPos = b2Body_GetPosition(body.bodyId);
+        
+        float itemX = itemPos.x * scale;
+        float itemY = itemPos.y * scale;
+        
+        float pontoX = ponto.x + ponto.width / 2.0f;
+        float pontoY = ponto.y + ponto.height / 2.0f;
+        
+        float distance = sqrt(pow(pontoX - itemX, 2) + pow(pontoY - itemY, 2));
+
+        if(distance >= 150){
+            body.isEquipped = false;
+            b2Body_SetGravityScale(body.bodyId, 1.0f);
+        }
+        
+        if(distance < 150 || body.isEquipped == true){
+            body.isEquipped = true;
+            b2Body_SetAngularVelocity(body.bodyId, 0);
+            if(distance < 10.0f){
+                b2Body_SetLinearVelocity(body.bodyId, {0, 0});
+                b2Body_SetGravityScale(body.bodyId, 0.0f);
+                return;
+            }
+            
+            float dirX = (pontoX - itemX) / distance;
+            float dirY = (pontoY - itemY) / distance;
+            
+            float forca = distance * 0.5f;
+            
+            b2Vec2 speed = {dirX * forca, dirY * forca};
+            b2Body_SetLinearVelocity(body.bodyId, speed);
+        }
+
+    } else {
+        b2Vec2 itemPos = b2Body_GetPosition(body.bodyId);
+        float itemX = itemPos.x * scale;
+        float itemY = itemPos.y * scale;
+        float pontoX = ponto.x + ponto.width / 2.0f;
+        float pontoY = ponto.y + ponto.height / 2.0f;
+        float distance = sqrt(pow(pontoX - itemX, 2) + pow(pontoY - itemY, 2));
+
+        if(distance >= 150){
+            body.isEquipped = false;
+            b2Body_SetGravityScale(body.bodyId, 1.0f);
         }
     }
 }
@@ -142,7 +195,7 @@ int main()
     UnloadImageColors(pixels);
 
     b2WorldDef worldDef = b2DefaultWorldDef();
-    worldDef.gravity = {0.0f, 20};
+    worldDef.gravity = {0.0f, 80};
     b2WorldId world = b2CreateWorld(&worldDef);
     
     float backpackCenterX = screenWidth / 2.0f-10;
@@ -165,8 +218,8 @@ int main()
     TotalItems.push_back(ItemGenerator(world, espadacurta, (screenWidth/2)+(2*50)-50, screenHeight/2-100, b2_dynamicBody));
     TotalItems.push_back(ItemGenerator(world, pocaomisteriosa, (screenWidth/2+150), screenHeight/2-400, b2_dynamicBody));
     
-    
-    
+    InventoryPivotPoint PontoEngracado = (InventoryPivotPoint){screenWidth/2+300, screenHeight/2,false,50,50,0,10};
+        
     while (!WindowShouldClose())
     {
         float dt = GetFrameTime();
@@ -175,7 +228,9 @@ int main()
         
         for(physicalObject& body : TotalItems){
             grab(body);
+            PivotChecker(body, PontoEngracado);
         }
+
         
         BeginDrawing();
         ClearBackground(WHITE);
@@ -196,6 +251,8 @@ int main()
             );
         }
         */
+
+        DrawRectangleLines(PontoEngracado.x,PontoEngracado.y,PontoEngracado.width,PontoEngracado.height,GREEN);
         
         
         
