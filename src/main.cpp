@@ -4,6 +4,7 @@
 #include "item.h"
 #include "itemlist.h"
 #include "Equipament.h"
+#include "player.h"
 #include <asm-generic/errno.h>
 #include <raylib.h>
 #include <box2d/box2d.h>
@@ -15,6 +16,7 @@
 
 bool MousePressed = false;
 physicalObject* GrabbedObject = nullptr;
+
 
 //gerador rapido de paredes
 physicalObject WallGenerator(b2WorldId world, float xP, float yP,float width, float height, enum b2BodyType type){ 
@@ -118,54 +120,38 @@ void grab(physicalObject& body){
 }
 
 void PivotChecker(physicalObject& body, InventoryPivotPoint ponto){
-    if(body.isGrabbed){
-        
-        b2Vec2 itemPos = b2Body_GetPosition(body.bodyId);
-        
-        float itemX = itemPos.x * scale;
-        float itemY = itemPos.y * scale;
-        
-        float pontoX = ponto.x + ponto.width / 2.0f;
-        float pontoY = ponto.y + ponto.height / 2.0f;
-        
-        float distance = sqrt(pow(pontoX - itemX, 2) + pow(pontoY - itemY, 2));
+    if(GrabbedObject == &body) return;
 
-        if(distance >= 150){
-            body.isEquipped = false;
-            b2Body_SetGravityScale(body.bodyId, 1.0f);
-        }
-        
-        if(distance < 150 || body.isEquipped == true){
-            body.isEquipped = true;
-            b2Body_SetAngularVelocity(body.bodyId, 0);
-            if(distance < 10.0f){
-                b2Body_SetLinearVelocity(body.bodyId, {0, 0});
-                b2Body_SetGravityScale(body.bodyId, 0.0f);
-                return;
-            }
-            
-            float dirX = (pontoX - itemX) / distance;
-            float dirY = (pontoY - itemY) / distance;
-            
-            float forca = distance * 0.5f;
-            
-            b2Vec2 speed = {dirX * forca, dirY * forca};
-            b2Body_SetLinearVelocity(body.bodyId, speed);
-        }
-
-    } else {
+    if(body.templateData.itemPhysical->categoria==ponto.category){
         b2Vec2 itemPos = b2Body_GetPosition(body.bodyId);
         float itemX = itemPos.x * scale;
         float itemY = itemPos.y * scale;
         float pontoX = ponto.x + ponto.width / 2.0f;
         float pontoY = ponto.y + ponto.height / 2.0f;
         float distance = sqrt(pow(pontoX - itemX, 2) + pow(pontoY - itemY, 2));
-
-        if(distance >= 150){
+    
+        if(distance >= 100){
             body.isEquipped = false;
             b2Body_SetGravityScale(body.bodyId, 1.0f);
+            return;
         }
+    
+        body.isEquipped = true;
+        b2Body_SetAngularVelocity(body.bodyId, 0);
+        
+        if(distance < 10.0f){
+            b2Body_SetLinearVelocity(body.bodyId, {0, 0});
+            b2Body_SetGravityScale(body.bodyId, 0.0f);
+            return;
+        }
+    
+        float dirX = (pontoX - itemX) / distance;
+        float dirY = (pontoY - itemY) / distance;
+        b2Vec2 speed = {dirX * distance * 0.5f, dirY * distance * 0.5f};
+        b2Body_SetLinearVelocity(body.bodyId, speed);
+
     }
+
 }
 
 int main()
@@ -217,8 +203,24 @@ int main()
     }   
     TotalItems.push_back(ItemGenerator(world, espadacurta, (screenWidth/2)+(2*50)-50, screenHeight/2-100, b2_dynamicBody));
     TotalItems.push_back(ItemGenerator(world, pocaomisteriosa, (screenWidth/2+150), screenHeight/2-400, b2_dynamicBody));
-    
-    InventoryPivotPoint PontoEngracado = (InventoryPivotPoint){screenWidth/2+300, screenHeight/2,false,50,50,0,10};
+
+    InventoryPivotPoint HeadPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2-200,false,25,25,0,10,head};
+    InventoryPivotPoint ChestPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2-75,false,25,25,0,10,chest};
+    InventoryPivotPoint WaistPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2,false,25,25,0,10,waist};
+    InventoryPivotPoint RightHandPivot = (InventoryPivotPoint){screenWidth/2+600, screenHeight/2-125,false,25,25,0,10,hand};
+    InventoryPivotPoint LeftHandPivot = (InventoryPivotPoint){screenWidth/2+300, screenHeight/2-125,false,25,25,0,10,hand};
+    InventoryPivotPoint FeetPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2+125,false,25,25,0,10,feet};
+    InventoryPivotPoint AccessoryPivot = (InventoryPivotPoint){screenWidth/2+575, screenHeight/2+50,false,25,25,0,10,accessory};
+
+
+    std::vector<InventoryPivotPoint> SlotsEquipamentos;
+    SlotsEquipamentos.push_back(HeadPivot);
+    SlotsEquipamentos.push_back(ChestPivot);
+    SlotsEquipamentos.push_back(WaistPivot);
+    SlotsEquipamentos.push_back(RightHandPivot);
+    SlotsEquipamentos.push_back(LeftHandPivot);
+    SlotsEquipamentos.push_back(FeetPivot);
+    SlotsEquipamentos.push_back(AccessoryPivot);
         
     while (!WindowShouldClose())
     {
@@ -228,9 +230,29 @@ int main()
         
         for(physicalObject& body : TotalItems){
             grab(body);
-            PivotChecker(body, PontoEngracado);
-        }
 
+            b2Vec2 pos = b2Body_GetPosition(body.bodyId);
+
+            float jumpeffect = GetRandomValue(-70, -20);
+            if(jumpeffect==-70){jumpeffect=-150;};
+
+            if(pos.y*scale>=screenHeight){
+                b2Body_SetLinearVelocity(body.bodyId, {0,jumpeffect});
+            }
+            if(pos.y*scale<=0){
+                b2Body_SetLinearVelocity(body.bodyId, {0,-jumpeffect});
+            }
+            if(pos.x*scale>=screenWidth){
+                b2Body_SetLinearVelocity(body.bodyId, {jumpeffect,0});
+            }
+            if(pos.x*scale<=0){
+                b2Body_SetLinearVelocity(body.bodyId, {-jumpeffect,0});
+            }
+
+            for(InventoryPivotPoint ponto : SlotsEquipamentos){
+                PivotChecker(body, ponto);
+            }
+        }
         
         BeginDrawing();
         ClearBackground(WHITE);
@@ -252,7 +274,12 @@ int main()
         }
         */
 
-        DrawRectangleLines(PontoEngracado.x,PontoEngracado.y,PontoEngracado.width,PontoEngracado.height,GREEN);
+        /*
+        for(InventoryPivotPoint ponto : SlotsEquipamentos){
+                DrawRectangle(ponto.x,ponto.y,ponto.width,ponto.height,GREEN);
+            }
+        */
+        
         
         
         

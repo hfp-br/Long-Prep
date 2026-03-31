@@ -1,4 +1,5 @@
 #include "itemlist.h"
+#include "Equipament.h"
 #include "item.h"
 #include "raylib.h"
 #include <vector>
@@ -6,17 +7,17 @@
 
 Weapon espadacurtaweapon("espada curta", 0.2, 3, true, false, 5, 5, 1);
 ItemData espadacurtaData = {&espadacurtaweapon};
-physicalData espadacurtaPhysical = {{0}, 30, 300, 0, false,80,300};
+physicalData espadacurtaPhysical = {{0}, 30, 300, 0, false,80,300,hand};
 ItemTemplate espadacurta = {&espadacurtaData, &espadacurtaPhysical};
 
 Item cuboslimeitem("cubo slime", 2,1,false,false);
 ItemData cuboslimeData = {&cuboslimeitem};
-physicalData cuboslimePhysical = {{0},30,30,0,false,30,30};
+physicalData cuboslimePhysical = {{0},30,30,0,false,30,30,head};
 ItemTemplate cuboslime = {&cuboslimeData, &cuboslimePhysical};
 
 Potion pocaoMisteriosaPotion("pocao misterio", 1, 2, false, true, 10, 0, 3);
 ItemData pocaomisteriosaData = {&pocaoMisteriosaPotion};
-physicalData pocaomisteriosaPhysical = {{0},0,0,15,true,35,45};
+physicalData pocaomisteriosaPhysical = {{0},0,0,15,true,35,45,accessory};
 ItemTemplate pocaomisteriosa = {&pocaomisteriosaData, &pocaomisteriosaPhysical};
 
 

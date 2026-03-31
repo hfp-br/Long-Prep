@@ -1,6 +1,7 @@
 #ifndef ITEMLIST_H
 #define ITEMLIST_H
 
+#include "Equipament.h"
 #include "raylib.h"
 #include "box2d/id.h"
 #include "item.h"
@@ -15,6 +16,7 @@ struct physicalData {
     bool isCircle;
     float visualWidth;
     float visualHeight;
+    Category categoria;
     bool isClicked;
 };
 

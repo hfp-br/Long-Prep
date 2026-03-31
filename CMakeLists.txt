@@ -29,6 +29,7 @@ add_executable(meu_jogo
     src/player.cpp
     src/itemlist.cpp
     src/Equipament.cpp
+    src/player.cpp
 )
 
 target_link_libraries(meu_jogo

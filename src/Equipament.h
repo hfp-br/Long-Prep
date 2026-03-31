@@ -2,6 +2,9 @@
 #define EQUIPAMENT_H
 #include "raylib.h"
 #include "box2d/id.h"
+#include <string.h>
+
+enum Category{head, chest, hand,waist, feet, accessory};
 
 struct InventoryPivotPoint{
     int x;
@@ -11,6 +14,7 @@ struct InventoryPivotPoint{
     int height;
     int radius;
     float strength;
+    Category category;
 };
 
 
