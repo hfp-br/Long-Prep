@@ -22,6 +22,7 @@ private:
     bool consumable;
 
 public:
+    virtual ~Item() = default;
     Item(std::string name, float weight, int size, bool equipable, bool consumable) {
         this->name = name;
         this->weight = weight;
@@ -71,6 +72,20 @@ public:
         this->damage = damage;
         this->type = type;
     }
+};
+
+class Armor : public Item {
+private:
+    int defense;
+
+public:
+    Armor(std::string name, float weight, int size, bool equipable, bool consumable,
+          int defense)
+        : Item(name, weight, size, equipable, consumable), defense(defense) {
+            this->defense = defense;
+        }
+
+    int getDefense() const { return defense; }
 };
 
 #endif

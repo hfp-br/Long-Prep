@@ -1,12 +1,15 @@
+
 #ifndef EQUIPAMENT_H
 #define EQUIPAMENT_H
 #include "raylib.h"
 #include "box2d/id.h"
-#include <string.h>
+#include "item.h"
 
-enum Category{head, chest, hand,waist, feet, accessory};
+enum itemCategory { head, chest, hand, waist, feet, accessory };
 
-struct InventoryPivotPoint{
+struct physicalObject;
+
+struct InventoryPivotPoint {
     int x;
     int y;
     bool isCircle;
@@ -14,8 +17,8 @@ struct InventoryPivotPoint{
     int height;
     int radius;
     float strength;
-    Category category;
+    itemCategory category;
+    physicalObject* equippedItem = nullptr;
 };
-
 
 #endif

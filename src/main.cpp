@@ -13,10 +13,35 @@
 #include <vector>
 
 #define scale 10
+using namespace std;
 
 bool MousePressed = false;
 physicalObject* GrabbedObject = nullptr;
+Player player("hero", 100, 100, 5, 10.0f, true, true, 0);
 
+void StatusUpdater(physicalObject& body){
+    if(body.isEquipped && !body.wasEquipped){
+        Item* item = body.templateData.itemData->item;
+        
+        Weapon* w = dynamic_cast<Weapon*>(item);
+        if(w) player.setDamage(player.getDamage() + w->getDamage());
+        
+        Armor* a = dynamic_cast<Armor*>(item);
+        if(a) player.setDefense(player.getDefense() + a->getDefense());
+    }
+    
+    if(!body.isEquipped && body.wasEquipped){
+        Item* item = body.templateData.itemData->item;
+        
+        Weapon* w = dynamic_cast<Weapon*>(item);
+        if(w) player.setDamage(player.getDamage() - w->getDamage());
+        
+        Armor* a = dynamic_cast<Armor*>(item);
+        if(a) player.setDefense(player.getDefense() - a->getDefense());
+    }
+
+    body.wasEquipped = body.isEquipped;
+}
 
 //gerador rapido de paredes
 physicalObject WallGenerator(b2WorldId world, float xP, float yP,float width, float height, enum b2BodyType type){ 
@@ -86,6 +111,12 @@ void grab(physicalObject& body){
             GrabbedObject = nullptr;
             body.isGrabbed=false;
         }
+
+        if(body.isEquipped==true){
+            b2Filter filter = b2Shape_GetFilter(body.shapeId);
+            filter.maskBits = 0;
+            b2Shape_SetFilter(body.shapeId, filter);
+        }
     }
     
     if(GrabbedObject == nullptr && b2Shape_TestPoint(body.shapeId, mousePoint)){
@@ -119,39 +150,43 @@ void grab(physicalObject& body){
     }
 }
 
-void PivotChecker(physicalObject& body, InventoryPivotPoint ponto){
+void PivotChecker(physicalObject& body, InventoryPivotPoint& ponto){
     if(GrabbedObject == &body) return;
 
-    if(body.templateData.itemPhysical->categoria==ponto.category){
+    if(body.templateData.itemPhysical->categoria == ponto.category && body.templateData.itemData->item->isEquipable()==true){
         b2Vec2 itemPos = b2Body_GetPosition(body.bodyId);
         float itemX = itemPos.x * scale;
         float itemY = itemPos.y * scale;
         float pontoX = ponto.x + ponto.width / 2.0f;
         float pontoY = ponto.y + ponto.height / 2.0f;
         float distance = sqrt(pow(pontoX - itemX, 2) + pow(pontoY - itemY, 2));
-    
+
         if(distance >= 100){
+            if(ponto.equippedItem == &body){
+                ponto.equippedItem = nullptr;
+            }
             body.isEquipped = false;
             b2Body_SetGravityScale(body.bodyId, 1.0f);
             return;
         }
-    
+
+        if(ponto.equippedItem != nullptr && ponto.equippedItem != &body) return;
+
+        ponto.equippedItem = &body;
         body.isEquipped = true;
         b2Body_SetAngularVelocity(body.bodyId, 0);
-        
+
         if(distance < 10.0f){
             b2Body_SetLinearVelocity(body.bodyId, {0, 0});
             b2Body_SetGravityScale(body.bodyId, 0.0f);
             return;
         }
-    
+
         float dirX = (pontoX - itemX) / distance;
         float dirY = (pontoY - itemY) / distance;
         b2Vec2 speed = {dirX * distance * 0.5f, dirY * distance * 0.5f};
         b2Body_SetLinearVelocity(body.bodyId, speed);
-
     }
-
 }
 
 int main()
@@ -201,12 +236,24 @@ int main()
     for(int i=0; i<5; i++){
         TotalItems.push_back(ItemGenerator(world, cuboslime, (screenWidth/2), screenHeight/2-400, b2_dynamicBody));
     }   
-    TotalItems.push_back(ItemGenerator(world, espadacurta, (screenWidth/2)+(2*50)-50, screenHeight/2-100, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, pocaomisteriosa, (screenWidth/2+150), screenHeight/2-400, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, espadacurta,(screenWidth/2)+(2*50)-50, screenHeight/2-100, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, pocaomisteriosa,(screenWidth/2+150), screenHeight/2-400, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, coletecouro, screenWidth/2, screenHeight/2, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, pocaomisteriosa,screenWidth/2 + 150, screenHeight/2 - 400, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, espadalonga,screenWidth/2 - 50,  screenHeight/2 - 200, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, arco,screenWidth/2 - 100, screenHeight/2 - 100, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, lança,screenWidth/2 + 200, screenHeight/2 - 200, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, capacete,screenWidth/2 - 150, screenHeight/2 - 300, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, botas,screenWidth/2 + 250, screenHeight/2 - 100, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, cintura,screenWidth/2,       screenHeight/2 - 400, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, anel,screenWidth/2 - 200, screenHeight/2 - 200, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, amuleto,screenWidth/2 + 300, screenHeight/2 - 300, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, pocaocura,screenWidth/2 - 50,  screenHeight/2 - 400, b2_dynamicBody));
+    TotalItems.push_back(ItemGenerator(world, pocaodano,screenWidth/2 + 350, screenHeight/2 - 200, b2_dynamicBody));
 
     InventoryPivotPoint HeadPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2-200,false,25,25,0,10,head};
     InventoryPivotPoint ChestPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2-75,false,25,25,0,10,chest};
-    InventoryPivotPoint WaistPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2,false,25,25,0,10,waist};
+    InventoryPivotPoint WaistPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2+25,false,25,25,0,10,waist};
     InventoryPivotPoint RightHandPivot = (InventoryPivotPoint){screenWidth/2+600, screenHeight/2-125,false,25,25,0,10,hand};
     InventoryPivotPoint LeftHandPivot = (InventoryPivotPoint){screenWidth/2+300, screenHeight/2-125,false,25,25,0,10,hand};
     InventoryPivotPoint FeetPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2+125,false,25,25,0,10,feet};
@@ -230,6 +277,7 @@ int main()
         
         for(physicalObject& body : TotalItems){
             grab(body);
+            StatusUpdater(body);
 
             b2Vec2 pos = b2Body_GetPosition(body.bodyId);
 
@@ -249,7 +297,7 @@ int main()
                 b2Body_SetLinearVelocity(body.bodyId, {-jumpeffect,0});
             }
 
-            for(InventoryPivotPoint ponto : SlotsEquipamentos){
+            for(InventoryPivotPoint& ponto : SlotsEquipamentos){
                 PivotChecker(body, ponto);
             }
         }
@@ -259,7 +307,8 @@ int main()
         DrawTexture(backgroundtexture,0,0,WHITE);
         DrawTextureEx(equipamentTab, (Vector2){screenWidth/2-(float)(equipamentTab.width/4)+420,screenHeight/2-(float)(equipamentTab.height/4)-50}, 0, 0.6, WHITE);
         DrawTextureEx(openbackpackTex, (Vector2){screenWidth/2-(float)(openbackpackTex.width/4)-150,screenHeight/2-(float)(openbackpackTex.height/4)-150}, 0, backpackScale, WHITE);
-        
+        DrawText(TextFormat("Dano: %d", player.getDamage()), 10, 10, 20, RED);
+        DrawText(TextFormat("Defesa: %d", player.getDefense()), 10, 35, 20, BLUE);
         /*
         for (const physicalObject& body : BackpackWalls) {
             b2Vec2 pos = b2Body_GetPosition(body.bodyId);

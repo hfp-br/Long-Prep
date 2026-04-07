@@ -16,7 +16,7 @@ struct physicalData {
     bool isCircle;
     float visualWidth;
     float visualHeight;
-    Category categoria;
+    itemCategory categoria;
     bool isClicked;
 };
 
@@ -35,12 +35,24 @@ struct physicalObject {
     bool isWall;
     bool isGrabbed = false;
     bool isEquipped = false;
+    bool wasEquipped = false;
     b2BodyId bodyId;
     b2ShapeId shapeId;
 };
 
 extern ItemTemplate espadacurta;
+extern ItemTemplate espadalonga;
+extern ItemTemplate arco;
+extern ItemTemplate lança;
 extern ItemTemplate cuboslime;
+extern ItemTemplate coletecouro;
+extern ItemTemplate capacete;
+extern ItemTemplate botas;
+extern ItemTemplate cintura;
+extern ItemTemplate anel;
+extern ItemTemplate amuleto;
 extern ItemTemplate pocaomisteriosa;
+extern ItemTemplate pocaocura;
+extern ItemTemplate pocaodano;
 
 #endif

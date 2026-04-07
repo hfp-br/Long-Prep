@@ -134,6 +134,23 @@ class Weapon : public Item {
 
 }; // classe das armas derivada do item
 
+class Armor : public Item {
+private:
+    int defense;
+
+public:
+    Armor(string name, float weight, int size, bool equipable, bool consumable, int defense)
+        : Item(name, weight, size, equipable, consumable) {
+        this->defense = defense;
+    }
+
+
+    int getDefense() const { return defense; }
+
+    void setDefense(int d) { defense = d; }
+};
+
+
 class Potion : public Item {
 
     private:
@@ -185,3 +202,4 @@ class Potion : public Item {
         }
 
 }; // classe das poções
+

@@ -13,11 +13,10 @@ class Player {
         float weight_capacity;
         bool backpack;
         bool alive;
-        bool weapon_equip;
-        bool potion_equip;
+        int defense;
 
     public:
-        Player(std::string name, int life, int life_max, int damage, float weight_capacity, bool backpack, bool alive, bool weapon_equip, bool potion_equip){
+        Player(std::string name, int life, int life_max, int damage, float weight_capacity, bool backpack, bool alive, int defense){
             this->name = name;
             this->life = life;
             this->life_max = life_max;
@@ -25,8 +24,7 @@ class Player {
             this->weight_capacity = weight_capacity;
             this->backpack = backpack;
             this->alive = alive;
-            this->weapon_equip = weapon_equip;
-            this->potion_equip = potion_equip;
+            this->defense = defense;
         }
 
         std::string getName()           { return name; }
@@ -36,8 +34,7 @@ class Player {
         float getWeight_Capacity()      { return weight_capacity; }
         bool isBackpack()               { return backpack; }
         bool isAlive()                  { return alive; }
-        bool isWeapon_Equip()           { return weapon_equip; }
-        bool isPotion_Equip()           { return potion_equip; }
+        int getDefense()           { return defense; }
 
         void setName(std::string n)     { name = n; }
         void setLife(int l)             { if(l > life_max) return; life = l; }
@@ -46,8 +43,7 @@ class Player {
         void setWeight_Capacity(float w){ weight_capacity = w; }
         void setBackpack(bool b)        { backpack = b; }
         void setAlive(bool a)           { alive = a; }
-        void setWeapon_Equip(bool w)    { weapon_equip = w; }
-        void setPotion_Equip(bool p)    { potion_equip = p; }
+        void setDefense(int w)    { defense = w; }
 };
 
 #endif
