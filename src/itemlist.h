@@ -40,19 +40,54 @@ struct physicalObject {
     b2ShapeId shapeId;
 };
 
+// espadas
 extern ItemTemplate espadacurta;
+extern ItemTemplate espadacurtaUC;
+extern ItemTemplate espadamedia;
+extern ItemTemplate espadamediaEP;
 extern ItemTemplate espadalonga;
-extern ItemTemplate arco;
-extern ItemTemplate lança;
-extern ItemTemplate cuboslime;
-extern ItemTemplate coletecouro;
-extern ItemTemplate capacete;
-extern ItemTemplate botas;
-extern ItemTemplate cintura;
-extern ItemTemplate anel;
-extern ItemTemplate amuleto;
-extern ItemTemplate pocaomisteriosa;
-extern ItemTemplate pocaocura;
-extern ItemTemplate pocaodano;
+// facas
+extern ItemTemplate facapequena;
+extern ItemTemplate facapequenaUC;
+extern ItemTemplate facarara;
+extern ItemTemplate facaEP;
+extern ItemTemplate facalend;
+// arcos
+extern ItemTemplate arcopeq;
+extern ItemTemplate arcopequUC;
+extern ItemTemplate arcorar;
+extern ItemTemplate arcoEP;
+extern ItemTemplate arcolend;
+// capacetes
+extern ItemTemplate capacetecomum;
+extern ItemTemplate capaceteUC;
+extern ItemTemplate capaceterare;
+extern ItemTemplate capaceteEP;
+extern ItemTemplate capacetelegend;
+// peitorais
+extern ItemTemplate coletecomum;
+extern ItemTemplate coleteUC;
+extern ItemTemplate coterare;
+extern ItemTemplate coteEP;
+extern ItemTemplate cotelegend;
+// cinturas
+extern ItemTemplate cintocomum;
+extern ItemTemplate cintoUC;
+extern ItemTemplate cintorare;
+extern ItemTemplate cintoEP;
+extern ItemTemplate cintolend;
+// botas
+extern ItemTemplate botascomum;
+extern ItemTemplate botasUC;
+extern ItemTemplate botasrare;
+extern ItemTemplate botasEP;
+extern ItemTemplate botaslegend;
+// acessórios
+extern ItemTemplate anelocomum;
+extern ItemTemplate aneloUC;
+extern ItemTemplate anelorare;
+extern ItemTemplate aneloEP;
+extern ItemTemplate anelolend;
+// pocoes
 
 #endif

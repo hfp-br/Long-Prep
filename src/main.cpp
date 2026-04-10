@@ -1,23 +1,52 @@
 #include "box2d/id.h"
 #include "box2d/math_functions.h"
 #include "box2d/types.h"
+#include "enemy.h"
 #include "item.h"
 #include "itemlist.h"
 #include "Equipament.h"
 #include "player.h"
 #include <asm-generic/errno.h>
+#include <concepts>
 #include <raylib.h>
 #include <box2d/box2d.h>
 #include <cmath>
 #include <iostream>
 #include <vector>
-
+#include <time.h>
+#include "enemylist.h"
 #define scale 10
 using namespace std;
 
+
+
+
+typedef enum GameStage{menu,config,inventory,run};
+GameStage currentgamestage;
+const int screenWidth = 1280*1.5;
+const int screenHeight = 720*1.5;
 bool MousePressed = false;
 physicalObject* GrabbedObject = nullptr;
 Player player("hero", 100, 100, 5, 10.0f, true, true, 0);
+
+void BattleManager(float dt, Player& player, Enemy& inimigo){
+    player.tickAttackTimer(dt);
+    inimigo.tickAttackTimer(dt);
+
+    if(inimigo.getAttackTimer() > inimigo.getAttackSpeed()){
+        inimigo.resetAttackTimer();
+        int dano = max(0, (int)inimigo.getDamage() - player.getDefense());
+        player.setLife(player.getLife() - dano);
+        cout << "Inimigo atacou! HP player: " << player.getLife() << endl;
+    }
+
+    if(player.getAttackTimer() > player.getAttackSpeed()){
+        player.resetAttackTimer();
+        int dano = max(0, player.getDamage() - inimigo.getDefense());
+        inimigo.setHealth(inimigo.getHealth() - dano);
+        cout << "Player atacou! HP inimigo: " << inimigo.getHealth() << endl;
+    }
+}
 
 void StatusUpdater(physicalObject& body){
     if(body.isEquipped && !body.wasEquipped){
@@ -25,6 +54,7 @@ void StatusUpdater(physicalObject& body){
         
         Weapon* w = dynamic_cast<Weapon*>(item);
         if(w) player.setDamage(player.getDamage() + w->getDamage());
+        if(w) player.setAttackSpeed(w->getAttackSpeed());
         
         Armor* a = dynamic_cast<Armor*>(item);
         if(a) player.setDefense(player.getDefense() + a->getDefense());
@@ -35,6 +65,7 @@ void StatusUpdater(physicalObject& body){
         
         Weapon* w = dynamic_cast<Weapon*>(item);
         if(w) player.setDamage(player.getDamage() - w->getDamage());
+        if(w) player.setAttackSpeed(1);
         
         Armor* a = dynamic_cast<Armor*>(item);
         if(a) player.setDefense(player.getDefense() - a->getDefense());
@@ -127,7 +158,11 @@ void grab(physicalObject& body){
     
     if(GrabbedObject == &body){
         b2Vec2 direction = {mousePoint.x - pos.x, mousePoint.y - pos.y};
-        b2Vec2 speed = {direction.x * (body.templateData.itemData->item->getWeight()*10), direction.y * (body.templateData.itemData->item->getWeight()*10)};
+        float velocidade = 1.0f / body.templateData.itemData->item->getWeight() * 10.0f;
+        b2Vec2 speed = {
+            direction.x * velocidade,
+            direction.y * velocidade
+        };
         body.isGrabbed=true;
         b2Filter filter = b2Shape_GetFilter(body.shapeId);
         filter.maskBits = CAT_ITEM;
@@ -189,178 +224,270 @@ void PivotChecker(physicalObject& body, InventoryPivotPoint& ponto){
     }
 }
 
-int main()
-{
-    //seta o tamanho da tela
-    const int screenWidth = 1280*1.5;
+void spawnRandomItems(b2WorldId world, std::vector<physicalObject>& TotalItems) {
+    float cx = screenWidth / 2.0f;
+    float cy = screenHeight / 2.0f;
+
+    // lista de todos os itens
+    std::vector<ItemTemplate*> todosItens = {
+        // espadas
+        //&espadacurta, &espadacurtaUC, &espadamedia, &espadamediaEP, &espadalonga,
+        // facas
+        //&facapequena, &facapequenaUC, &facarara, &facaEP, &facalend,
+        // arcos
+        //&arcopeq, &arcopequUC, &arcorar, &arcoEP, &arcolend,
+        // capacetes
+        //&capacetecomum, &capaceteUC, &capaceterare, &capaceteEP, &capacetelegend,
+        // peitorais
+        //&coletecomum, &coleteUC, &coterare, &coteEP, &cotelegend,
+        // cinturas
+        //&cintocomum, &cintoUC, &cintorare, &cintoEP, &cintolend,
+        // botas
+        //&botascomum, &botasUC, &botasrare, &botasEP, &botaslegend,
+        // acessórios
+        //&anelocomum, &aneloUC, &anelorare, &aneloEP, &anelolend
+    };
+
+    int colunas = 8;
+    float espacoX = 150.0f;
+    float espacoY = 200.0f;
+    float startX = cx - (colunas / 2.0f) * espacoX;
+    float startY = 0;
+
+    for(int i = 0; i < (int)todosItens.size(); i++){
+        float x = startX + (i % colunas) * espacoX;
+        float y = startY + (i / colunas) * espacoY;
+        TotalItems.push_back(ItemGenerator(world, *todosItens[i], x, y, b2_dynamicBody));
+    }
+}
+
+
+struct InventoryContext {
+    Texture2D openbackpackTex;
+    Texture2D equipamentTab;
+    Texture2D backgroundtexture;
+    Image backgroundimage;
+    
+    b2WorldId world;
+    
+    std::vector<physicalObject> BackpackWalls;
+    std::vector<physicalObject> TotalItems;
+    std::vector<InventoryPivotPoint> SlotsEquipamentos;
+    
+    float backpackScale;
+    float backpackCenterX;
+    float backpackCenterY;
+    float backpackW;
+    float backpackH;
+};
+
+InventoryContext inv;
+
+void inventory_init() {
+    inv.openbackpackTex = LoadTexture("images/open backpack.png");
+    inv.equipamentTab   = LoadTexture("images/tab.png");
+    inv.backgroundimage = LoadImage("images/fundo.png");
+    ImageFormat(&inv.backgroundimage, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    inv.backgroundtexture = LoadTextureFromImage(inv.backgroundimage);
+    ImageBlurGaussian(&inv.backgroundimage, 10);
+    Color* pixels = LoadImageColors(inv.backgroundimage);
+    UpdateTexture(inv.backgroundtexture, pixels);
+    UnloadImageColors(pixels);
+    
+    
+    b2WorldDef worldDef = b2DefaultWorldDef();
+    worldDef.gravity = {0.0f, 80};
+    inv.world = b2CreateWorld(&worldDef);
+    
+    spawnRandomItems(inv.world, inv.TotalItems);
+    inv.backpackScale   = 0.75f;
+    inv.backpackCenterX = screenWidth / 2.0f - 10;
+    inv.backpackCenterY = screenHeight / 2.0f - 25;
+    inv.backpackW       = inv.openbackpackTex.width / 1.5f * inv.backpackScale;
+    inv.backpackH       = inv.openbackpackTex.height * inv.backpackScale;
+    
+    inv.BackpackWalls.push_back(WallGenerator(inv.world, inv.backpackCenterX, inv.backpackCenterY + inv.backpackH*0.38f, inv.backpackW*0.95f, 10, b2_staticBody));
+    inv.BackpackWalls.push_back(WallGenerator(inv.world, inv.backpackCenterX - inv.backpackW*0.46f, inv.backpackCenterY, 10, inv.backpackH*0.75f, b2_staticBody));
+    inv.BackpackWalls.push_back(WallGenerator(inv.world, inv.backpackCenterX + inv.backpackW*0.46f, inv.backpackCenterY, 10, inv.backpackH*0.75f, b2_staticBody));
+    
+    // itens
+    //inv.TotalItems.push_back(ItemGenerator(inv.world, cuboslime, screenWidth/2, screenHeight/2-400, b2_dynamicBody));
+    
+    
+    // slots
+    inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+450, screenHeight/2-200, false, 25,25,0,10, head});
+    inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+450, screenHeight/2-75,  false, 25,25,0,10, chest});
+    inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+450, screenHeight/2+25,  false, 25,25,0,10, waist});
+    inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+600, screenHeight/2-125, false, 25,25,0,10, hand});
+    inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+300, screenHeight/2-125, false, 25,25,0,10, hand});
+    inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+450, screenHeight/2+125, false, 25,25,0,10, feet});
+    inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+575, screenHeight/2+50,  false, 25,25,0,10, accessory});
+}
+
+
+
+void inventory_draw() {
+    ClearBackground(BLACK);
+    DrawTexture(inv.backgroundtexture, 0, 0, WHITE);
+    DrawTextureEx(inv.equipamentTab,
+        (Vector2){screenWidth/2 - (float)(inv.equipamentTab.width/4) + 420,
+            screenHeight/2 - (float)(inv.equipamentTab.height/4) - 50},
+            0, 0.6f, WHITE);
+            DrawTextureEx(inv.openbackpackTex,
+                (Vector2){screenWidth/2 - (float)(inv.openbackpackTex.width/4) - 150,
+                    screenHeight/2 - (float)(inv.openbackpackTex.height/4) - 150},
+                    0, inv.backpackScale, WHITE);
+                    
+                    DrawText(TextFormat("Dano: %d",   player.getDamage()),  10, 10, 20, RED);
+                    DrawText(TextFormat("Defesa: %d", player.getDefense()), 10, 35, 20, BLUE);
+                    DrawText("SPACE para iniciar run", 10, 60, 20, DARKGRAY);
+                    
+                    for(const physicalObject& body : inv.TotalItems){
+                        b2Rot rot = b2Body_GetRotation(body.bodyId);
+                        b2Vec2 pos = b2Body_GetPosition(body.bodyId);
+                        float x = pos.x * scale;
+                        float y = pos.y * scale;
+                        float angle = b2Rot_GetAngle(rot) * RAD2DEG;
+                        
+                        DrawTexturePro(
+                            body.templateData.itemPhysical->texture,
+                            (Rectangle){0, 0, (float)body.templateData.itemPhysical->texture.width,
+            (float)body.templateData.itemPhysical->texture.height},
+            (Rectangle){x, y, body.templateData.itemPhysical->visualWidth,
+                body.templateData.itemPhysical->visualHeight},
+                (Vector2){body.templateData.itemPhysical->visualWidth/2,
+                    body.templateData.itemPhysical->visualHeight/2},
+                    angle, WHITE
+                );
+            }
+        }
+        
+        
+        struct RunContext {
+            int faseAtual = 0;
+            int contadorfases = 0;
+            Enemy* inimigo = nullptr;
+        };
+        
+        RunContext runc;
+        
+        std::vector<Enemy*> tier1 = {&Regular, &Fast, &Tank};
+        std::vector<Enemy*> tier2 = {&Juggernaut, &Archer, &Ninja};
+        std::vector<Enemy*> tier3 = {&Colossus, &Knight, &Defender};
+        std::vector<Enemy*> tier4 = {&Dragon};
+        
+        Enemy* getRandomEnemy(int fase) {
+            if(fase == 50)return &Dragon;
+            else if((fase % 10)==0)return tier3[GetRandomValue(0, tier3.size()-1)];
+            else if((fase % 5)==0)return tier2[GetRandomValue(0, tier2.size()-1)];
+            else return tier1[GetRandomValue(0, tier1.size()-1)];
+        }
+        
+        void run_init() {
+            runc.faseAtual++;
+            runc.inimigo = getRandomEnemy(runc.faseAtual);
+            runc.inimigo->setHealth(runc.inimigo->getHealthMax());
+            runc.inimigo->resetAttackTimer();
+            player.resetAttackTimer();
+        }
+        
+        void inventory_update(float dt) {
+            b2World_Step(inv.world, dt, 4);
+            
+            for(physicalObject& body : inv.TotalItems){
+                grab(body);
+                StatusUpdater(body);
+                
+                b2Vec2 pos = b2Body_GetPosition(body.bodyId);
+                float jumpeffect = GetRandomValue(-70, -20);
+                if(jumpeffect == -70) jumpeffect = -150;
+                
+                if(pos.y*scale >= screenHeight) b2Body_SetLinearVelocity(body.bodyId, {0, jumpeffect});
+                if(pos.y*scale <= 0)            b2Body_SetLinearVelocity(body.bodyId, {0, -jumpeffect});
+                if(pos.x*scale >= screenWidth)  b2Body_SetLinearVelocity(body.bodyId, {jumpeffect, 0});
+                if(pos.x*scale <= 0)            b2Body_SetLinearVelocity(body.bodyId, {-jumpeffect, 0});
+                
+                for(InventoryPivotPoint& ponto : inv.SlotsEquipamentos)
+                PivotChecker(body, ponto);
+        }
+        
+            if(IsKeyPressed(KEY_SPACE)){
+                run_init();
+                currentgamestage = run;
+            }
+        }
+
+        void run_update(float dt) {
+            if(runc.inimigo == nullptr) return;
+            
+            BattleManager(dt, player, *runc.inimigo);
+            
+            if(player.getLife() <= 0){
+                runc.faseAtual = 0;
+                player.setLife(player.getLife_max());
+                currentgamestage = menu;
+                return;
+            }
+            
+    if(runc.inimigo->getHealth() <= 0){
+        currentgamestage = inventory;
+        return;
+    }
+
+    if(IsKeyPressed(KEY_ESCAPE)){
+        currentgamestage = inventory;
+    }
+}
+
+void run_draw() {
+    if(runc.inimigo == nullptr) return;
+
+    ClearBackground(BLACK);
+    DrawText(TextFormat("Fase: %d",       runc.faseAtual),                  10, 10,  20, YELLOW);
+    DrawText(TextFormat("Inimigo: %s",    runc.inimigo->getName().c_str()), 10, 35,  25, WHITE);
+    DrawText(TextFormat("HP Player: %d",  player.getLife()),                 10, 70,  30, GREEN);
+    DrawText(TextFormat("HP Inimigo: %d", runc.inimigo->getHealth()),        10, 110, 30, RED);
+    DrawText(TextFormat("Dano: %d",       player.getDamage()),               10, 150, 20, WHITE);
+    DrawText(TextFormat("Defesa: %d",     player.getDefense()),              10, 175, 20, WHITE);
+    DrawText(TextFormat("Attack Speed: %.1f", player.getAttackSpeed()),      10, 200, 20, WHITE);
+    DrawText("ESC para voltar ao inventario", 10, screenHeight-30, 20, DARKGRAY);
+}
+                    
+                    
+int main() {
+    const int screenWidth  = 1280*1.5;
     const int screenHeight = 720*1.5;
     
-    
-    //nome da janela e FPS
     InitWindow(screenWidth, screenHeight, "long prep");
     SetTargetFPS(60);
     InitItemList();
     
-    Texture2D openbackpackTex = LoadTexture("images/open backpack.png");
-    Texture2D equipamentTab = LoadTexture("images/tab.png");
-    Image backgroundimage = LoadImage("images/fundo.png");
-    ImageFormat(&backgroundimage, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
-    Texture2D backgroundtexture = LoadTextureFromImage(backgroundimage);
-
-    if(true){
-        ImageBlurGaussian(&backgroundimage, 10);
-    }
-
-    Color *pixels = LoadImageColors(backgroundimage); 
-    UpdateTexture(backgroundtexture, pixels);
-    UnloadImageColors(pixels);
-
-    b2WorldDef worldDef = b2DefaultWorldDef();
-    worldDef.gravity = {0.0f, 80};
-    b2WorldId world = b2CreateWorld(&worldDef);
+    currentgamestage = inventory;
+    inventory_init();
     
-    float backpackCenterX = screenWidth / 2.0f-10;
-    float backpackCenterY = screenHeight / 2.0f-25;
-    float backpackScale = 0.75;
-
-    float backpackW = openbackpackTex.width/1.5 * backpackScale;
-    float backpackH = openbackpackTex.height * backpackScale;
-
-    std::vector<physicalObject> BackpackWalls;
-    BackpackWalls.push_back(WallGenerator(world, backpackCenterX, backpackCenterY + backpackH*0.38f, backpackW*0.95f, 10, b2_staticBody));   // chão
-    BackpackWalls.push_back(WallGenerator(world, backpackCenterX - backpackW*0.46f, backpackCenterY, 10, backpackH*0.75f, b2_staticBody));   // parede esq
-    BackpackWalls.push_back(WallGenerator(world, backpackCenterX + backpackW*0.46f, backpackCenterY, 10, backpackH*0.75f, b2_staticBody));   // parede dir
-    
-    
-    std::vector<physicalObject> TotalItems;
-    for(int i=0; i<5; i++){
-        TotalItems.push_back(ItemGenerator(world, cuboslime, (screenWidth/2), screenHeight/2-400, b2_dynamicBody));
-    }   
-    TotalItems.push_back(ItemGenerator(world, espadacurta,(screenWidth/2)+(2*50)-50, screenHeight/2-100, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, pocaomisteriosa,(screenWidth/2+150), screenHeight/2-400, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, coletecouro, screenWidth/2, screenHeight/2, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, pocaomisteriosa,screenWidth/2 + 150, screenHeight/2 - 400, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, espadalonga,screenWidth/2 - 50,  screenHeight/2 - 200, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, arco,screenWidth/2 - 100, screenHeight/2 - 100, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, lança,screenWidth/2 + 200, screenHeight/2 - 200, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, capacete,screenWidth/2 - 150, screenHeight/2 - 300, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, botas,screenWidth/2 + 250, screenHeight/2 - 100, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, cintura,screenWidth/2,       screenHeight/2 - 400, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, anel,screenWidth/2 - 200, screenHeight/2 - 200, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, amuleto,screenWidth/2 + 300, screenHeight/2 - 300, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, pocaocura,screenWidth/2 - 50,  screenHeight/2 - 400, b2_dynamicBody));
-    TotalItems.push_back(ItemGenerator(world, pocaodano,screenWidth/2 + 350, screenHeight/2 - 200, b2_dynamicBody));
-
-    InventoryPivotPoint HeadPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2-200,false,25,25,0,10,head};
-    InventoryPivotPoint ChestPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2-75,false,25,25,0,10,chest};
-    InventoryPivotPoint WaistPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2+25,false,25,25,0,10,waist};
-    InventoryPivotPoint RightHandPivot = (InventoryPivotPoint){screenWidth/2+600, screenHeight/2-125,false,25,25,0,10,hand};
-    InventoryPivotPoint LeftHandPivot = (InventoryPivotPoint){screenWidth/2+300, screenHeight/2-125,false,25,25,0,10,hand};
-    InventoryPivotPoint FeetPivot = (InventoryPivotPoint){screenWidth/2+450, screenHeight/2+125,false,25,25,0,10,feet};
-    InventoryPivotPoint AccessoryPivot = (InventoryPivotPoint){screenWidth/2+575, screenHeight/2+50,false,25,25,0,10,accessory};
-
-
-    std::vector<InventoryPivotPoint> SlotsEquipamentos;
-    SlotsEquipamentos.push_back(HeadPivot);
-    SlotsEquipamentos.push_back(ChestPivot);
-    SlotsEquipamentos.push_back(WaistPivot);
-    SlotsEquipamentos.push_back(RightHandPivot);
-    SlotsEquipamentos.push_back(LeftHandPivot);
-    SlotsEquipamentos.push_back(FeetPivot);
-    SlotsEquipamentos.push_back(AccessoryPivot);
-        
-    while (!WindowShouldClose())
-    {
+    while(!WindowShouldClose()) {
         float dt = GetFrameTime();
         
-        b2World_Step(world, dt, 4);
-        
-        for(physicalObject& body : TotalItems){
-            grab(body);
-            StatusUpdater(body);
-
-            b2Vec2 pos = b2Body_GetPosition(body.bodyId);
-
-            float jumpeffect = GetRandomValue(-70, -20);
-            if(jumpeffect==-70){jumpeffect=-150;};
-
-            if(pos.y*scale>=screenHeight){
-                b2Body_SetLinearVelocity(body.bodyId, {0,jumpeffect});
-            }
-            if(pos.y*scale<=0){
-                b2Body_SetLinearVelocity(body.bodyId, {0,-jumpeffect});
-            }
-            if(pos.x*scale>=screenWidth){
-                b2Body_SetLinearVelocity(body.bodyId, {jumpeffect,0});
-            }
-            if(pos.x*scale<=0){
-                b2Body_SetLinearVelocity(body.bodyId, {-jumpeffect,0});
-            }
-
-            for(InventoryPivotPoint& ponto : SlotsEquipamentos){
-                PivotChecker(body, ponto);
-            }
+        switch(currentgamestage) {
+            case menu:                            break;
+            case inventory: inventory_update(dt); break;
+            case run:       run_update(dt);       break;
+            case config:                          break;
         }
         
         BeginDrawing();
-        ClearBackground(WHITE);
-        DrawTexture(backgroundtexture,0,0,WHITE);
-        DrawTextureEx(equipamentTab, (Vector2){screenWidth/2-(float)(equipamentTab.width/4)+420,screenHeight/2-(float)(equipamentTab.height/4)-50}, 0, 0.6, WHITE);
-        DrawTextureEx(openbackpackTex, (Vector2){screenWidth/2-(float)(openbackpackTex.width/4)-150,screenHeight/2-(float)(openbackpackTex.height/4)-150}, 0, backpackScale, WHITE);
-        DrawText(TextFormat("Dano: %d", player.getDamage()), 10, 10, 20, RED);
-        DrawText(TextFormat("Defesa: %d", player.getDefense()), 10, 35, 20, BLUE);
-        /*
-        for (const physicalObject& body : BackpackWalls) {
-            b2Vec2 pos = b2Body_GetPosition(body.bodyId);
-            float x = pos.x * scale, y = pos.y * scale;
-            DrawRectangle(
-                x - body.wallData.width/2,
-                y - body.wallData.height/2,
-                body.wallData.width,
-                body.wallData.height,
-                RED
-            );
+        
+        switch(currentgamestage) {
+            case menu:                          break;
+            case inventory: inventory_draw();   break;
+            case run:       run_draw();         break;
+            case config:                        break;
         }
-        */
 
-        /*
-        for(InventoryPivotPoint ponto : SlotsEquipamentos){
-                DrawRectangle(ponto.x,ponto.y,ponto.width,ponto.height,GREEN);
-            }
-        */
-        
-        
-        
-        
-        
-        for (const physicalObject& body : TotalItems) {
-            b2Rot rot = b2Body_GetRotation(body.bodyId);
-            b2Vec2 pos = b2Body_GetPosition(body.bodyId);
-            float x = pos.x * scale;
-            float y = pos.y * scale;
-
-            float angle = b2Rot_GetAngle(rot) * RAD2DEG;
-            float w = body.templateData.itemPhysical->width;
-            float h = body.templateData.itemPhysical->height;
-
-            Texture2D tex = body.templateData.itemPhysical->texture;
-            
-            
-            DrawTexturePro(
-                body.templateData.itemPhysical->texture,
-                (Rectangle){0, 0, (float)body.templateData.itemPhysical->texture.width, 
-                (float)body.templateData.itemPhysical->texture.height},
-                (Rectangle){x, y, body.templateData.itemPhysical->visualWidth,
-                                body.templateData.itemPhysical->visualHeight},
-                (Vector2){body.templateData.itemPhysical->visualWidth/2, body.templateData.itemPhysical->visualHeight/2},
-                angle,
-                WHITE
-            );
-        }
         EndDrawing();
     }
 
-    b2DestroyWorld(world);
+    b2DestroyWorld(inv.world);
     CloseWindow();
     return 0;
 }
