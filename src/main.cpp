@@ -12,6 +12,7 @@
 #include <box2d/box2d.h>
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <time.h>
 #include "enemylist.h"
@@ -105,7 +106,7 @@ physicalObject ItemGenerator(b2WorldId world, ItemTemplate& templ, float xP, flo
         bodyshapeDef.filter.categoryBits = CAT_ITEM;
         bodyshapeDef.filter.maskBits = CAT_PAREDE | CAT_ITEM;
         bodyshapeDef.density = 1.0f;
-        Item.shapeId = b2CreatePolygonShape(bodyId, &bodyshapeDef, &bodyBox); // só uma vez
+        Item.shapeId = b2CreatePolygonShape(bodyId, &bodyshapeDef, &bodyBox);
     } else {
         b2Circle circle;
         circle.center = {0.0f, 0.0f};
@@ -115,7 +116,7 @@ physicalObject ItemGenerator(b2WorldId world, ItemTemplate& templ, float xP, flo
         ballshapeDef.filter.maskBits = CAT_PAREDE | CAT_ITEM;
         ballshapeDef.density = 1.0f;
         ballshapeDef.density = 1.0f;
-        Item.shapeId = b2CreateCircleShape(bodyId, &ballshapeDef, &circle); // só uma vez
+        Item.shapeId = b2CreateCircleShape(bodyId, &ballshapeDef, &circle);
     }
 
     Item.isWall = false;
@@ -125,6 +126,32 @@ physicalObject ItemGenerator(b2WorldId world, ItemTemplate& templ, float xP, flo
     Item.bodyId = bodyId;
     return Item;
 }
+
+struct InventoryContext {
+    Texture2D openbackpackTex;
+    Texture2D equipamentTab;
+    Texture2D backgroundtexture;
+    Texture2D accessoryslot;
+    Texture2D trash;
+    Image backgroundimage;
+    
+    b2WorldId world;
+    
+    std::vector<physicalObject> BackpackWalls;
+    std::vector<physicalObject> TotalItems;
+    std::vector<InventoryPivotPoint> SlotsEquipamentos;
+    
+    float backpackScale;
+    float backpackCenterX;
+    float backpackCenterY;
+    float backpackW;
+    float backpackH;
+    float trashTimer = 0.0f;
+    bool itemOnTrash = false;
+};
+
+InventoryContext inv;
+bool spawnedThisGame = false;
 
 void grab(physicalObject& body){
     b2Vec2 mousePoint = {(float)GetMouseX() / scale, (float)GetMouseY() / scale};
@@ -153,6 +180,16 @@ void grab(physicalObject& body){
     if(GrabbedObject == nullptr && b2Shape_TestPoint(body.shapeId, mousePoint)){
         if(IsMouseButtonDown(0)){
             GrabbedObject = &body;
+            
+            if(body.isEquipped){
+                for(InventoryPivotPoint& ponto : inv.SlotsEquipamentos){
+                    if(B2_ID_EQUALS(ponto.equippedBodyId, body.bodyId)){
+                        ponto.equippedBodyId = b2_nullBodyId;
+                    }
+                }
+                body.isEquipped = false;
+                b2Body_SetGravityScale(body.bodyId, 1.0f);
+            }
         }
     }
     
@@ -188,105 +225,108 @@ void grab(physicalObject& body){
 void PivotChecker(physicalObject& body, InventoryPivotPoint& ponto){
     if(GrabbedObject == &body) return;
 
-    if(body.templateData.itemPhysical->categoria == ponto.category && body.templateData.itemData->item->isEquipable()==true){
-        b2Vec2 itemPos = b2Body_GetPosition(body.bodyId);
-        float itemX = itemPos.x * scale;
-        float itemY = itemPos.y * scale;
-        float pontoX = ponto.x + ponto.width / 2.0f;
-        float pontoY = ponto.y + ponto.height / 2.0f;
-        float distance = sqrt(pow(pontoX - itemX, 2) + pow(pontoY - itemY, 2));
+    itemCategory cat = body.templateData.itemPhysical->categoria;
+    bool compativel = (cat == ponto.category) ||
+                  (ponto.category == handright && cat == handleft) ||
+                  (ponto.category == handleft  && cat == handright) ||
+                  (ponto.category == handright && cat == hand) ||
+                  (ponto.category == handleft  && cat == hand);
 
-        if(distance >= 100){
-            if(ponto.equippedItem == &body){
-                ponto.equippedItem = nullptr;
-            }
-            body.isEquipped = false;
-            b2Body_SetGravityScale(body.bodyId, 1.0f);
-            return;
+    if(!compativel || !body.templateData.itemData->item->isEquipable()) return;
+
+    b2Vec2 itemPos = b2Body_GetPosition(body.bodyId);
+    float itemX = itemPos.x * scale;
+    float itemY = itemPos.y * scale;
+    float pontoX = ponto.x + ponto.width / 2.0f;
+    float pontoY = ponto.y + ponto.height / 2.0f;
+    float distance = sqrt(pow(pontoX - itemX, 2) + pow(pontoY - itemY, 2));
+
+    if(distance >= 100){
+        if(B2_ID_EQUALS(ponto.equippedBodyId, body.bodyId)){
+            ponto.equippedBodyId = b2_nullBodyId;
         }
-
-        if(ponto.equippedItem != nullptr && ponto.equippedItem != &body) return;
-
-        ponto.equippedItem = &body;
-        body.isEquipped = true;
-        b2Body_SetAngularVelocity(body.bodyId, 0);
-
-        if(distance < 10.0f){
-            b2Body_SetLinearVelocity(body.bodyId, {0, 0});
-            b2Body_SetGravityScale(body.bodyId, 0.0f);
-            return;
-        }
-
-        float dirX = (pontoX - itemX) / distance;
-        float dirY = (pontoY - itemY) / distance;
-        b2Vec2 speed = {dirX * distance * 0.5f, dirY * distance * 0.5f};
-        b2Body_SetLinearVelocity(body.bodyId, speed);
+        body.isEquipped = false;
+        b2Body_SetGravityScale(body.bodyId, 1.0f);
+        return;
     }
+
+    bool slotLivre = B2_IS_NULL(ponto.equippedBodyId) || 
+                     B2_ID_EQUALS(ponto.equippedBodyId, body.bodyId);
+    if(!slotLivre) return;
+
+    ponto.equippedBodyId = body.bodyId;
+    body.isEquipped = true;
+    b2Body_SetAngularVelocity(body.bodyId, 0);
+
+    if(distance < 10.0f){
+        b2Body_SetLinearVelocity(body.bodyId, {0, 0});
+        b2Body_SetGravityScale(body.bodyId, 0.0f);
+        return;
+    }
+
+    float dirX = (pontoX - itemX) / distance;
+    float dirY = (pontoY - itemY) / distance;
+    b2Vec2 speed = {dirX * distance * 0.5f, dirY * distance * 0.5f};
+    b2Body_SetLinearVelocity(body.bodyId, speed);
 }
 
-void spawnRandomItems(b2WorldId world, std::vector<physicalObject>& TotalItems) {
-    float cx = screenWidth / 2.0f;
-    float cy = screenHeight / 2.0f;
+struct RunContext {
+    int faseAtual = 0;
+    int contadorfases = 0;
+    Enemy* inimigo = nullptr;
+    std::vector<b2BodyId> itensEquipadosIds;
+};
+        
+RunContext runc;
 
-    // lista de todos os itens
+std::vector<Enemy*> tier1 = {&Regular, &Fast, &Tank};
+std::vector<Enemy*> tier2 = {&Juggernaut, &Archer, &Ninja};
+std::vector<Enemy*> tier3 = {&Colossus, &Knight, &Defender};
+std::vector<Enemy*> tier4 = {&Dragon};
+
+Enemy* getRandomEnemy(int fase) {
+    if(fase == 50)return &Dragon;
+    else if((fase % 10)==0)return tier3[GetRandomValue(0, tier3.size()-1)];
+    else if((fase % 5)==0)return tier2[GetRandomValue(0, tier2.size()-1)];
+    else return tier1[GetRandomValue(0, tier1.size()-1)];
+}
+
+void spawnRandomItems(b2WorldId world, std::vector<physicalObject>& TotalItems, int dificuldade) {
     std::vector<ItemTemplate*> todosItens = {
-        // espadas
-        //&espadacurta, &espadacurtaUC, &espadamedia, &espadamediaEP, &espadalonga,
-        // facas
-        //&facapequena, &facapequenaUC, &facarara, &facaEP, &facalend,
-        // arcos
-        //&arcopeq, &arcopequUC, &arcorar, &arcoEP, &arcolend,
-        // capacetes
-        //&capacetecomum, &capaceteUC, &capaceterare, &capaceteEP, &capacetelegend,
-        // peitorais
-        //&coletecomum, &coleteUC, &coterare, &coteEP, &cotelegend,
-        // cinturas
-        //&cintocomum, &cintoUC, &cintorare, &cintoEP, &cintolend,
-        // botas
-        //&botascomum, &botasUC, &botasrare, &botasEP, &botaslegend,
-        // acessórios
-        //&anelocomum, &aneloUC, &anelorare, &aneloEP, &anelolend
+        &espadacurta, &espadacurtaUC, &espadamedia, &espadamediaEP, &espadalonga,
+        &facapequena, &facapequenaUC, &facarara, &facaEP, &facalend,
+        &arcopeq, &arcopequUC, &arcorar, &arcoEP, &arcolend,
+        &capacetecomum, &capaceteUC, &capaceterare, &capaceteEP, &capacetelegend,
+        &coletecomum, &coleteUC, &coterare, &coteEP, &cotelegend,
+        &cintocomum, &cintoUC, &cintorare, &cintoEP, &cintolend,
+        &botascomum, &botasUC, &botasrare, &botasEP, &botaslegend,
+        &anelocomum, &aneloUC, &anelorare, &aneloEP, &anelolend
     };
 
-    int colunas = 8;
-    float espacoX = 150.0f;
-    float espacoY = 200.0f;
-    float startX = cx - (colunas / 2.0f) * espacoX;
-    float startY = 0;
+    std::vector<ItemTemplate*> itensDisponiveis;
+    for(ItemTemplate* item : todosItens){
+        if(item->itemData->item->getRarity() <= dificuldade){
+            itensDisponiveis.push_back(item);
+        }
+    }
 
-    for(int i = 0; i < (int)todosItens.size(); i++){
-        float x = startX + (i % colunas) * espacoX;
-        float y = startY + (i / colunas) * espacoY;
-        TotalItems.push_back(ItemGenerator(world, *todosItens[i], x, y, b2_dynamicBody));
+    int quantidadeSpawn = 1;
+    for(int i = 0; i < quantidadeSpawn; i++){
+        int idx = GetRandomValue(0, itensDisponiveis.size()-1);
+        TotalItems.push_back(ItemGenerator(world, *itensDisponiveis[idx],
+            screenWidth/2 + GetRandomValue(-200, 200),
+            screenHeight/2 - 300,
+            b2_dynamicBody));
     }
 }
-
-
-struct InventoryContext {
-    Texture2D openbackpackTex;
-    Texture2D equipamentTab;
-    Texture2D backgroundtexture;
-    Image backgroundimage;
-    
-    b2WorldId world;
-    
-    std::vector<physicalObject> BackpackWalls;
-    std::vector<physicalObject> TotalItems;
-    std::vector<InventoryPivotPoint> SlotsEquipamentos;
-    
-    float backpackScale;
-    float backpackCenterX;
-    float backpackCenterY;
-    float backpackW;
-    float backpackH;
-};
-
-InventoryContext inv;
 
 void inventory_init() {
     inv.openbackpackTex = LoadTexture("images/open backpack.png");
     inv.equipamentTab   = LoadTexture("images/tab.png");
     inv.backgroundimage = LoadImage("images/fundo.png");
+    inv.accessoryslot = LoadTexture("images/inventory slot.png");
+    inv.trash = LoadTexture("images/lixo.png");
+
     ImageFormat(&inv.backgroundimage, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     inv.backgroundtexture = LoadTextureFromImage(inv.backgroundimage);
     ImageBlurGaussian(&inv.backgroundimage, 10);
@@ -299,7 +339,13 @@ void inventory_init() {
     worldDef.gravity = {0.0f, 80};
     inv.world = b2CreateWorld(&worldDef);
     
-    spawnRandomItems(inv.world, inv.TotalItems);
+    if(spawnedThisGame==false){
+        spawnedThisGame=true;
+        spawnRandomItems(inv.world, inv.TotalItems, 0);
+        spawnRandomItems(inv.world, inv.TotalItems, 0);
+        spawnRandomItems(inv.world, inv.TotalItems, 0);
+    }
+
     inv.backpackScale   = 0.75f;
     inv.backpackCenterX = screenWidth / 2.0f - 10;
     inv.backpackCenterY = screenHeight / 2.0f - 25;
@@ -310,132 +356,191 @@ void inventory_init() {
     inv.BackpackWalls.push_back(WallGenerator(inv.world, inv.backpackCenterX - inv.backpackW*0.46f, inv.backpackCenterY, 10, inv.backpackH*0.75f, b2_staticBody));
     inv.BackpackWalls.push_back(WallGenerator(inv.world, inv.backpackCenterX + inv.backpackW*0.46f, inv.backpackCenterY, 10, inv.backpackH*0.75f, b2_staticBody));
     
-    // itens
-    //inv.TotalItems.push_back(ItemGenerator(inv.world, cuboslime, screenWidth/2, screenHeight/2-400, b2_dynamicBody));
-    
     
     // slots
     inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+450, screenHeight/2-200, false, 25,25,0,10, head});
     inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+450, screenHeight/2-75,  false, 25,25,0,10, chest});
     inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+450, screenHeight/2+25,  false, 25,25,0,10, waist});
-    inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+600, screenHeight/2-125, false, 25,25,0,10, hand});
-    inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+300, screenHeight/2-125, false, 25,25,0,10, hand});
+    inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+600, screenHeight/2-125, false, 25,25,0,10, handright});
+    inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+300, screenHeight/2-125, false, 25,25,0,10, handleft});
     inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+450, screenHeight/2+125, false, 25,25,0,10, feet});
     inv.SlotsEquipamentos.push_back((InventoryPivotPoint){screenWidth/2+575, screenHeight/2+50,  false, 25,25,0,10, accessory});
 }
-
-
 
 void inventory_draw() {
     ClearBackground(BLACK);
     DrawTexture(inv.backgroundtexture, 0, 0, WHITE);
     DrawTextureEx(inv.equipamentTab,
-        (Vector2){screenWidth/2 - (float)(inv.equipamentTab.width/4) + 420,
-            screenHeight/2 - (float)(inv.equipamentTab.height/4) - 50},
-            0, 0.6f, WHITE);
-            DrawTextureEx(inv.openbackpackTex,
-                (Vector2){screenWidth/2 - (float)(inv.openbackpackTex.width/4) - 150,
-                    screenHeight/2 - (float)(inv.openbackpackTex.height/4) - 150},
-                    0, inv.backpackScale, WHITE);
+(Vector2){screenWidth/2 - (float)(inv.equipamentTab.width/4) + 420,
+    screenHeight/2 - (float)(inv.equipamentTab.height/4) - 50},
+    0, 0.6f, WHITE);
+    DrawTextureEx(inv.openbackpackTex,
+        (Vector2){screenWidth/2 - (float)(inv.openbackpackTex.width/4) - 150,
+            screenHeight/2 - (float)(inv.openbackpackTex.height/4) - 150},
+            0, inv.backpackScale, WHITE);
+    DrawTextureEx(inv.accessoryslot,(Vector2){screenWidth/2+540, screenHeight/2+25},0,0.1,WHITE);
+    DrawTextureEx(inv.trash, (Vector2){50,screenHeight-250}, 20, 0.4, WHITE);
+            
+    DrawText(TextFormat("Dano: %d",   player.getDamage()),  10, 10, 20, RED);
+    DrawText(TextFormat("Defesa: %d", player.getDefense()), 10, 35, 20, BLUE);
+    DrawText("SPACE para iniciar run", 10, 60, 20, DARKGRAY);
                     
-                    DrawText(TextFormat("Dano: %d",   player.getDamage()),  10, 10, 20, RED);
-                    DrawText(TextFormat("Defesa: %d", player.getDefense()), 10, 35, 20, BLUE);
-                    DrawText("SPACE para iniciar run", 10, 60, 20, DARKGRAY);
-                    
-                    for(const physicalObject& body : inv.TotalItems){
-                        b2Rot rot = b2Body_GetRotation(body.bodyId);
-                        b2Vec2 pos = b2Body_GetPosition(body.bodyId);
-                        float x = pos.x * scale;
-                        float y = pos.y * scale;
-                        float angle = b2Rot_GetAngle(rot) * RAD2DEG;
-                        
-                        DrawTexturePro(
-                            body.templateData.itemPhysical->texture,
-                            (Rectangle){0, 0, (float)body.templateData.itemPhysical->texture.width,
-            (float)body.templateData.itemPhysical->texture.height},
-            (Rectangle){x, y, body.templateData.itemPhysical->visualWidth,
-                body.templateData.itemPhysical->visualHeight},
-                (Vector2){body.templateData.itemPhysical->visualWidth/2,
-                    body.templateData.itemPhysical->visualHeight/2},
-                    angle, WHITE
-                );
-            }
+    for(const physicalObject& body : inv.TotalItems){
+        b2Rot rot = b2Body_GetRotation(body.bodyId);
+        b2Vec2 pos = b2Body_GetPosition(body.bodyId);
+        float x = pos.x * scale;
+        float y = pos.y * scale;
+        float angle = b2Rot_GetAngle(rot) * RAD2DEG;
+        
+        DrawTexturePro(
+    body.templateData.itemPhysical->texture,
+    (Rectangle){0, 0, (float)body.templateData.itemPhysical->texture.width,
+    (float)body.templateData.itemPhysical->texture.height},
+    (Rectangle){x, y, body.templateData.itemPhysical->visualWidth,
+        body.templateData.itemPhysical->visualHeight},
+        (Vector2){body.templateData.itemPhysical->visualWidth/2,
+            body.templateData.itemPhysical->visualHeight/2},
+            angle, WHITE
+        );
+    }
+}
+    
+        
+void run_init() {
+    runc.itensEquipadosIds.clear();
+    for(physicalObject& body : inv.TotalItems){
+        if(body.isEquipped){
+            runc.itensEquipadosIds.push_back(body.bodyId);
         }
-        
-        
-        struct RunContext {
-            int faseAtual = 0;
-            int contadorfases = 0;
-            Enemy* inimigo = nullptr;
-        };
-        
-        RunContext runc;
-        
-        std::vector<Enemy*> tier1 = {&Regular, &Fast, &Tank};
-        std::vector<Enemy*> tier2 = {&Juggernaut, &Archer, &Ninja};
-        std::vector<Enemy*> tier3 = {&Colossus, &Knight, &Defender};
-        std::vector<Enemy*> tier4 = {&Dragon};
-        
-        Enemy* getRandomEnemy(int fase) {
-            if(fase == 50)return &Dragon;
-            else if((fase % 10)==0)return tier3[GetRandomValue(0, tier3.size()-1)];
-            else if((fase % 5)==0)return tier2[GetRandomValue(0, tier2.size()-1)];
-            else return tier1[GetRandomValue(0, tier1.size()-1)];
-        }
-        
-        void run_init() {
-            runc.faseAtual++;
-            runc.inimigo = getRandomEnemy(runc.faseAtual);
-            runc.inimigo->setHealth(runc.inimigo->getHealthMax());
-            runc.inimigo->resetAttackTimer();
-            player.resetAttackTimer();
-        }
-        
-        void inventory_update(float dt) {
-            b2World_Step(inv.world, dt, 4);
-            
-            for(physicalObject& body : inv.TotalItems){
-                grab(body);
-                StatusUpdater(body);
-                
-                b2Vec2 pos = b2Body_GetPosition(body.bodyId);
-                float jumpeffect = GetRandomValue(-70, -20);
-                if(jumpeffect == -70) jumpeffect = -150;
-                
-                if(pos.y*scale >= screenHeight) b2Body_SetLinearVelocity(body.bodyId, {0, jumpeffect});
-                if(pos.y*scale <= 0)            b2Body_SetLinearVelocity(body.bodyId, {0, -jumpeffect});
-                if(pos.x*scale >= screenWidth)  b2Body_SetLinearVelocity(body.bodyId, {jumpeffect, 0});
-                if(pos.x*scale <= 0)            b2Body_SetLinearVelocity(body.bodyId, {-jumpeffect, 0});
-                
-                for(InventoryPivotPoint& ponto : inv.SlotsEquipamentos)
-                PivotChecker(body, ponto);
-        }
-        
-            if(IsKeyPressed(KEY_SPACE)){
-                run_init();
-                currentgamestage = run;
-            }
-        }
-
-        void run_update(float dt) {
-            if(runc.inimigo == nullptr) return;
-            
-            BattleManager(dt, player, *runc.inimigo);
-            
-            if(player.getLife() <= 0){
-                runc.faseAtual = 0;
-                player.setLife(player.getLife_max());
-                currentgamestage = menu;
-                return;
-            }
-            
-    if(runc.inimigo->getHealth() <= 0){
-        currentgamestage = inventory;
-        return;
     }
 
-    if(IsKeyPressed(KEY_ESCAPE)){
+    runc.faseAtual++;
+    runc.inimigo = getRandomEnemy(runc.faseAtual);
+    runc.inimigo->setHealth(runc.inimigo->getHealthMax());
+    runc.inimigo->resetAttackTimer();
+    player.resetAttackTimer();
+}
+        
+void inventory_update(float dt) {
+    b2World_Step(inv.world, dt, 4);
+    
+    for(physicalObject& body : inv.TotalItems){
+        grab(body);
+        StatusUpdater(body);
+        
+        b2Vec2 pos = b2Body_GetPosition(body.bodyId);
+        float jumpeffect = GetRandomValue(-70, -20);
+        if(jumpeffect == -70) jumpeffect = -150;
+        
+        if(pos.y*scale >= screenHeight) b2Body_SetLinearVelocity(body.bodyId, {0, jumpeffect});
+        if(pos.y*scale <= 0)            b2Body_SetLinearVelocity(body.bodyId, {0, -jumpeffect});
+        if(pos.x*scale >= screenWidth)  b2Body_SetLinearVelocity(body.bodyId, {jumpeffect, 0});
+        if(pos.x*scale <= 0)            b2Body_SetLinearVelocity(body.bodyId, {-jumpeffect, 0});
+        
+        Rectangle trashRect = {50, (float)screenHeight-250, inv.trash.width*0.4f, inv.trash.height*0.4f};
+
+        if(body.isGrabbed){
+            b2Vec2 pos = b2Body_GetPosition(body.bodyId);
+            float itemX = pos.x * scale;
+            float itemY = pos.y * scale;
+            
+            bool sobreLixo = CheckCollisionPointRec({itemX, itemY}, trashRect);
+            
+            if(sobreLixo){
+                inv.trashTimer += dt;
+                inv.itemOnTrash = true;
+            } else {
+                inv.trashTimer = 0.0f;
+                inv.itemOnTrash = false;
+            }
+            
+            if(inv.trashTimer >= 2.0f){
+                inv.trashTimer = 0.0f;
+                inv.itemOnTrash = false;
+                GrabbedObject = nullptr;
+                body.isGrabbed = false;
+                body.isEquipped = false;
+                body.wasEquipped = false;
+                b2DestroyBody(body.bodyId);
+                inv.TotalItems.erase(
+                    std::remove_if(inv.TotalItems.begin(), inv.TotalItems.end(),
+                        [&body](const physicalObject& obj){
+                            return B2_ID_EQUALS(obj.bodyId, body.bodyId);
+                        }),
+                    inv.TotalItems.end()
+                );
+                break;
+            }
+        }
+
+        for(InventoryPivotPoint& ponto : inv.SlotsEquipamentos){
+            PivotChecker(body, ponto);
+        }
+        }
+
+
+    if(IsKeyPressed(KEY_SPACE)){
+        run_init();
+        currentgamestage = run;
+    }
+}
+
+void run_update(float dt) {
+    if(runc.inimigo == nullptr) return;
+    
+    BattleManager(dt, player, *runc.inimigo);
+    
+    if(player.getLife() <= 0){
+    runc.faseAtual = 0;
+    player.setLife(player.getLife_max());
+    player.setDamage(5);
+    player.setDefense(0);
+    player.setAttackSpeed(1);
+
+    for(physicalObject& body : inv.TotalItems){
+        if(body.isEquipped){
+            body.isEquipped = false;
+            body.wasEquipped = false;
+            b2Body_SetGravityScale(body.bodyId, 1.0f);
+        }
+    }
+
+    for(b2BodyId id : runc.itensEquipadosIds){
+        inv.TotalItems.erase(
+            std::remove_if(inv.TotalItems.begin(), inv.TotalItems.end(),
+                [id](const physicalObject& obj){
+                    return B2_ID_EQUALS(obj.bodyId, id);
+                }),
+            inv.TotalItems.end()
+        );
+    }
+
+    for(InventoryPivotPoint& ponto : inv.SlotsEquipamentos)
+    ponto.equippedBodyId = b2_nullBodyId;
+    runc.itensEquipadosIds.clear();
+
+    spawnRandomItems(inv.world, inv.TotalItems, runc.inimigo->getDifficulty());
+    runc.inimigo = nullptr;
+    currentgamestage = inventory;
+    return;
+}
+            
+    if(runc.inimigo->getHealth() <= 0){
+
+        int dif = runc.inimigo->getDifficulty();
+        int quantidade = 1;
+        if(dif == 1) quantidade = 1;
+        if(dif == 2) quantidade = 2;
+        if(dif == 3) quantidade = 3;
+        if(dif == 4) quantidade = 1;
+        
+        for(int i=0; i<quantidade; i++){
+            spawnRandomItems(inv.world, inv.TotalItems, dif);
+        }
+
+        runc.inimigo = nullptr;
         currentgamestage = inventory;
+        return;
     }
 }
 

@@ -6,81 +6,81 @@
 #include <cstdlib>
 
 // ===== ESPADAS ===== 
-Weapon espadacurtaweapon("Espada Curta", 0.2f, 2, true, false, 5, 3, sword, 1.0f, common);
+Weapon espadacurtaweapon("Espada Curta", 0.4f, 2, true, false, 5, 3, sword, 1.0f, common);
 ItemData espadacurtaData = {&espadacurtaweapon};
-physicalData espadacurtaPhysical = {{0}, 25, 200, 0, false, 65, 200, hand};
+physicalData espadacurtaPhysical = {{0}, 25, 200, 0, false, 65, 200, handright};
 ItemTemplate espadacurta = {&espadacurtaData, &espadacurtaPhysical};
 
-Weapon espadacurtaUCweapon("Espada Curta Reforçada", 0.25f, 2, true, false, 8, 3, sword, 0.95f, uncommon);
+Weapon espadacurtaUCweapon("Espada Curta Reforçada", 0.4f, 2, true, false, 8, 3, sword, 0.95f, uncommon);
 ItemData espadacurtaUCData = {&espadacurtaUCweapon};
-physicalData espadacurtaUCPhysical = {{0}, 22, 250, 0, false, 62, 250, hand};
+physicalData espadacurtaUCPhysical = {{0}, 22, 250, 0, false, 62, 250, handright};
 ItemTemplate espadacurtaUC = {&espadacurtaUCData, &espadacurtaUCPhysical};
 
 Weapon espadamediaweapon("Espada Media", 0.5f, 3, true, false, 12, 5, sword, 0.85f, rare);
 ItemData espadamediaData = {&espadamediaweapon};
-physicalData espadamediaPhysical = {{0}, 22, 250, 0, false, 62, 250, hand};
+physicalData espadamediaPhysical = {{0}, 22, 250, 0, false, 62, 250, handright};
 ItemTemplate espadamedia = {&espadamediaData, &espadamediaPhysical};
 
 Weapon espadamediaEPweapon("Espada Media Encantada", 0.55f, 3, true, false, 17, 5, sword, 0.8f, epic);
 ItemData espadamediaEPData = {&espadamediaEPweapon};
-physicalData espadamediaEPPhysical = {{0}, 32, 300, 0, false, 72, 300, hand};
+physicalData espadamediaEPPhysical = {{0}, 32, 300, 0, false, 72, 300, handright};
 ItemTemplate espadamediaEP = {&espadamediaEPData, &espadamediaEPPhysical};
 
 Weapon espadalongaweapon("Espada Longa", 0.9f, 4, true, false, 22, 7, sword, 0.7f, legendary);
 ItemData espadalongaData = {&espadalongaweapon};
-physicalData espadalongaPhysical = {{0}, 30, 350, 0, false, 110, 350, hand};
+physicalData espadalongaPhysical = {{0}, 30, 350, 0, false, 110, 350, handright};
 ItemTemplate espadalonga = {&espadalongaData, &espadalongaPhysical};
 
 // ===== FACAS =====
-Weapon facapequenaweapon("Faca Pequena", 0.1f, 1, true, false, 3, 2, sword, 0.5f, common);
+Weapon facapequenaweapon("Faca Pequena", 0.6f, 1, true, false, 3, 2, sword, 0.5f, common);
 ItemData facapequenaData = {&facapequenaweapon};
-physicalData facapequenaPhysical = {{0}, 24, 150, 0, false, 34, 150, hand};
+physicalData facapequenaPhysical = {{0}, 24, 150, 0, false, 34, 150, handleft};
 ItemTemplate facapequena = {&facapequenaData, &facapequenaPhysical};
 
-Weapon facapequenaUCweapon("Faca Afiada", 0.1f, 1, true, false, 3, 2, sword, 0.5f, uncommon);
+Weapon facapequenaUCweapon("Faca Afiada", 0.6f, 1, true, false, 3, 2, sword, 0.5f, uncommon);
 ItemData facapequenaUCData = {&facapequenaUCweapon};
-physicalData facapequenaUCPhysical = {{0}, 24, 150, 0, false, 34, 150, hand};
+physicalData facapequenaUCPhysical = {{0}, 24, 150, 0, false, 34, 150, handleft};
 ItemTemplate facapequenaUC = {&facapequenaUCData, &facapequenaUCPhysical};
 
-Weapon facarararweapon("Faca Serrilhada", 0.2f, 2, true, false, 8, 3, sword, 0.4f, rare);
+Weapon facarararweapon("Faca Serrilhada", 0.7f, 2, true, false, 8, 3, sword, 0.4f, rare);
 ItemData facarararData = {&facarararweapon};
-physicalData facarararPhysical = {{0}, 38, 170, 0, false, 58, 200, hand};
+physicalData facarararPhysical = {{0}, 38, 170, 0, false, 58, 200, handleft};
 ItemTemplate facarara = {&facarararData, &facarararPhysical};
 
-Weapon facaEPweapon("Faca Envenenada", 0.25f, 2, true, false, 13, 3, sword, 0.35f, epic);
+Weapon facaEPweapon("Faca Envenenada", 0.75f, 2, true, false, 13, 3, sword, 0.35f, epic);
 ItemData facaEPData = {&facaEPweapon};
-physicalData facaEPPhysical = {{0}, 38, 170, 0, false, 58, 200, hand};
+physicalData facaEPPhysical = {{0}, 38, 170, 0, false, 58, 200, handleft};
 ItemTemplate facaEP = {&facaEPData, &facaEPPhysical};
 
-Weapon facalendweapon("Faca Sombria", 0.3f, 2, true, false, 18, 4, sword, 0.3f, legendary);
+Weapon facalendweapon("Faca Sombria", 1, 2, true, false, 18, 4, sword, 0.3f, legendary);
 ItemData facalendData = {&facalendweapon};
-physicalData facalendPhysical = {{0}, 32, 220, 0, false, 62, 220, hand};
+physicalData facalendPhysical = {{0}, 32, 220, 0, false, 62, 220, handleft};
 ItemTemplate facalend = {&facalendData, &facalendPhysical};
 
 // ===== ARCOS =====
 Weapon arcopequweapon("Arco Simples", 0.4f, 3, true, false, 6, 15, bow, 1.2f, common);
 ItemData arcopequData = {&arcopequweapon};
-physicalData arcopequPhysical = {{0}, 180*0.7, 152*0.7, 0, false, 180*0.7, 152*0.7, hand};
+physicalData arcopequPhysical = {{0}, 180*0.7, 152*0.7, 0, false, 180*0.7, 152*0.7, handright};
 ItemTemplate arcopeq = {&arcopequData, &arcopequPhysical};
 
 Weapon arcopequUCweapon("Arco Reforçado", 0.45f, 3, true, false, 9, 16, bow, 1.1f, uncommon);
 ItemData arcopequUCData = {&arcopequUCweapon};
-physicalData arcopequUCPhysical = {{0}, 180*0.7, 152*0.7, 0, false, 180*0.7, 152*0.7, hand};
+physicalData arcopequUCPhysical = {{0}, 180*0.7, 152*0.7, 0, false, 180*0.7, 152*0.7, handright};
 ItemTemplate arcopequUC = {&arcopequUCData, &arcopequUCPhysical};
 
 Weapon arcorarweapon("Arco Élfico", 0.5f, 4, true, false, 14, 20, bow, 1.0f, rare);
 ItemData arcorarData = {&arcorarweapon};
-physicalData arcorarPhysical = {{0}, 54, 280, 0, false, 54, 280, hand};
+physicalData arcorarPhysical = {{0}, 54, 280, 0, false, 54, 280, handright};
 ItemTemplate arcorar = {&arcorarData, &arcorarPhysical};
 
 Weapon arcoEPweapon("Arco das Sombras", 0.55f, 4, true, false, 20, 22, bow, 0.9f, epic);
 ItemData arcoEPData = {&arcoEPweapon};
-physicalData arcoEPPhysical = {{0}, 54, 280, 0, false, 54, 280, hand};
+physicalData arcoEPPhysical = {{0}, 54, 280, 0, false, 54, 280, handright};
 ItemTemplate arcoEP = {&arcoEPData, &arcoEPPhysical};
 
 Weapon arcolendweapon("Arco Dracônico", 0.7f, 5, true, false, 28, 25, bow, 0.8f, legendary);
 ItemData arcolendData = {&arcolendweapon};
-physicalData arcolendPhysical = {{0}, 134, 260, 0, false, 134, 300, hand};
+physicalData arcolendPhysical = {{0}, 134, 260, 0, false, 134, 300, handright};
 ItemTemplate arcolend = {&arcolendData, &arcolendPhysical};
 
 // ===== CAPACETES =====
@@ -136,12 +136,12 @@ physicalData cotelegendPhysical = {{0}, 115, 144*1.1, 0, false, 175, 194*1.1, ch
 ItemTemplate cotelegend = {&cotelegendData, &cotelegendPhysical};
 
 // ===== CINTURAS =====
-Armor cintocomumArmor("Cinto de Couro", 0.2f, 1, true, false, 2, common);
+Armor cintocomumArmor("Cinto de Couro", 0.4f, 1, true, false, 2, common);
 ItemData cintocomumData = {&cintocomumArmor};
 physicalData cintocomumPhysical = {{0}, 190*0.6, 30*0.6, 0, false, 200*0.6, 70*0.6, waist};
 ItemTemplate cintocomum = {&cintocomumData, &cintocomumPhysical};
 
-Armor cintoUCArmor("Cinto Reforçado", 0.3f, 1, true, false, 3, uncommon);
+Armor cintoUCArmor("Cinto Reforçado", 0.4f, 1, true, false, 3, uncommon);
 ItemData cintoUCData = {&cintoUCArmor};
 physicalData cintoUCPhysical = {{0}, 190*0.6, 30*0.6, 0, false, 200*0.6, 70*0.6, waist};
 ItemTemplate cintoUC = {&cintoUCData, &cintoUCPhysical};
@@ -162,7 +162,7 @@ physicalData cintolendPhysical = {{0}, 200*0.6, 37*0.6, 0, false, 220*0.6, 107*0
 ItemTemplate cintolend = {&cintolendData, &cintolendPhysical};
 
 // ===== BOTAS =====
-Armor botascomumArmor("Botas de Couro", 0.3f, 2, true, false, 2, common);
+Armor botascomumArmor("Botas de Couro", 0.4f, 2, true, false, 2, common);
 ItemData botascomumData = {&botascomumArmor};
 physicalData botascomumPhysical = {{0}, 100*0.7, 115*0.7, 0, false, 130*0.7, 115*0.7, feet};
 ItemTemplate botascomum = {&botascomumData, &botascomumPhysical};
@@ -188,27 +188,27 @@ physicalData botaslegendPhysical = {{0}, 130*0.7, 164*0.7, 0, false, 130*0.7, 16
 ItemTemplate botaslegend = {&botaslegendData, &botaslegendPhysical};
 
 // ===== ACESSÓRIOS =====
-Armor anelocomumArmor("Anel de Bronze", 0.3f, 1, true, false, 1, common);
+Armor anelocomumArmor("Anel de Bronze", 0.4f, 1, true, false, 1, common);
 ItemData anelocomumData = {&anelocomumArmor};
 physicalData anelocomumPhysical = {{0}, 70, 27, 0, false, 70, 27, accessory};
 ItemTemplate anelocomum = {&anelocomumData, &anelocomumPhysical};
 
-Armor aneloUCArmor("Anel de Prata", 0.3f, 1, true, false, 2, uncommon);
+Armor aneloUCArmor("Anel de Prata", 0.4f, 1, true, false, 2, uncommon);
 ItemData aneloUCData = {&aneloUCArmor};
 physicalData aneloUCPhysical = {{0}, 70, 32, 0, false, 70, 32, accessory};
 ItemTemplate aneloUC = {&aneloUCData, &aneloUCPhysical};
 
-Armor anelorareArmor("Anel de Safira", 0.3f, 1, true, false, 4, rare);
+Armor anelorareArmor("Anel de Safira", 0.4f, 1, true, false, 4, rare);
 ItemData anelorareData = {&anelorareArmor};
 physicalData anelorarePhysical = {{0}, 75, 31, 0, false, 75, 31, accessory};
 ItemTemplate anelorare = {&anelorareData, &anelorarePhysical};
 
-Armor aneloEPArmor("Anel de Rubi", 0.3f, 1, true, false, 7, epic);
+Armor aneloEPArmor("Anel de Rubi", 0.4f, 1, true, false, 7, epic);
 ItemData aneloEPData = {&aneloEPArmor};
 physicalData aneloEPPhysical = {{0}, 75, 40, 0, false, 75, 40, accessory};
 ItemTemplate aneloEP = {&aneloEPData, &aneloEPPhysical};
 
-Armor anelolendArmor("Anel do Abismo", 0.3f, 1, true, false, 10, legendary);
+Armor anelolendArmor("Anel do Abismo", 0.4f, 1, true, false, 10, legendary);
 ItemData anelolendData = {&anelolendArmor};
 physicalData anelolendPhysical = {{0}, 80, 65, 0, false, 80, 65, accessory};
 ItemTemplate anelolend = {&anelolendData, &anelolendPhysical};

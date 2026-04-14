@@ -5,7 +5,7 @@
 #include "box2d/id.h"
 #include "item.h"
 
-enum itemCategory { head, chest, hand, waist, feet, accessory };
+enum itemCategory { head, chest, hand,handleft,handright, waist, feet, accessory };
 
 struct physicalObject;
 
@@ -18,7 +18,7 @@ struct InventoryPivotPoint {
     int radius;
     float strength;
     itemCategory category;
-    physicalObject* equippedItem = nullptr;
+    b2BodyId equippedBodyId = b2_nullBodyId;
 };
 
 #endif

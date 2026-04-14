@@ -17,7 +17,7 @@ class Enemy{
         int difficulty;
     
     public:
-        Enemy(string name, int healthmax,int health,int defense, int range, int damage, int attackspeed,int difficulty){
+        Enemy(string name, int healthmax,int health,int defense, int range, int damage, float attackspeed,int difficulty){
             this->name = name;
             this->healthmax = healthmax;
             this->health = health;
