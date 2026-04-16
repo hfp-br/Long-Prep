@@ -21,7 +21,6 @@ using namespace std;
 
 
 
-
 typedef enum GameStage{menu,config,inventory,run};
 GameStage currentgamestage;
 const int screenWidth = 1280*1.5;
@@ -285,7 +284,7 @@ std::vector<Enemy*> tier3 = {&Colossus, &Knight, &Defender};
 std::vector<Enemy*> tier4 = {&Dragon};
 
 Enemy* getRandomEnemy(int fase) {
-    if(fase == 50)return &Dragon;
+    if(fase % 50 == 0)return &Dragon;
     else if((fase % 10)==0)return tier3[GetRandomValue(0, tier3.size()-1)];
     else if((fase % 5)==0)return tier2[GetRandomValue(0, tier2.size()-1)];
     else return tier1[GetRandomValue(0, tier1.size()-1)];
@@ -423,6 +422,11 @@ void run_init() {
         
 void inventory_update(float dt) {
     b2World_Step(inv.world, dt, 4);
+
+    if(IsKeyPressed(KEY_A)){runc.faseAtual--;}
+    if(IsKeyPressed(KEY_D)){runc.faseAtual++;}
+
+    if(IsKeyDown(KEY_I)){spawnRandomItems(inv.world, inv.TotalItems, 4);}
     
     for(physicalObject& body : inv.TotalItems){
         grab(body);
@@ -519,7 +523,7 @@ void run_update(float dt) {
     ponto.equippedBodyId = b2_nullBodyId;
     runc.itensEquipadosIds.clear();
 
-    spawnRandomItems(inv.world, inv.TotalItems, runc.inimigo->getDifficulty());
+    spawnRandomItems(inv.world, inv.TotalItems, 0);
     runc.inimigo = nullptr;
     currentgamestage = inventory;
     return;
