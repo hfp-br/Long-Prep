@@ -223,6 +223,7 @@ void grab(physicalObject& body){
 
 void PivotChecker(physicalObject& body, InventoryPivotPoint& ponto){
     if(GrabbedObject == &body) return;
+    if(body.isEquipped && !B2_ID_EQUALS(ponto.equippedBodyId, body.bodyId)) return;
 
     itemCategory cat = body.templateData.itemPhysical->categoria;
     bool compativel = (cat == ponto.category) ||
@@ -304,11 +305,18 @@ void spawnRandomItems(b2WorldId world, std::vector<physicalObject>& TotalItems, 
 
     std::vector<ItemTemplate*> itensDisponiveis;
     for(ItemTemplate* item : todosItens){
+    if(dificuldade == 5){
+        itensDisponiveis.push_back(item);
+    } else if(dificuldade == 4){
+        if(item->itemData->item->getRarity() == 4){
+            itensDisponiveis.push_back(item);
+        }
+    } else {
         if(item->itemData->item->getRarity() <= dificuldade){
             itensDisponiveis.push_back(item);
         }
     }
-
+}
     int quantidadeSpawn = 1;
     for(int i = 0; i < quantidadeSpawn; i++){
         int idx = GetRandomValue(0, itensDisponiveis.size()-1);
@@ -426,7 +434,21 @@ void inventory_update(float dt) {
     if(IsKeyPressed(KEY_A)){runc.faseAtual--;}
     if(IsKeyPressed(KEY_D)){runc.faseAtual++;}
 
-    if(IsKeyDown(KEY_I)){spawnRandomItems(inv.world, inv.TotalItems, 4);}
+    if(IsKeyDown(KEY_I)){spawnRandomItems(inv.world, inv.TotalItems, 5);}
+    if(IsKeyPressed(KEY_C)){
+        inv.TotalItems.erase(
+            std::remove_if(inv.TotalItems.begin(), inv.TotalItems.end(),
+                [](physicalObject& obj){
+                    if(!obj.isEquipped){
+                        b2DestroyBody(obj.bodyId);
+                        return true;
+                    }
+                    return false;
+                }),
+            inv.TotalItems.end()
+        );
+    }
+    
     
     for(physicalObject& body : inv.TotalItems){
         grab(body);
