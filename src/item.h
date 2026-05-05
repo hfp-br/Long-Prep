@@ -14,7 +14,7 @@ enum potionType { support = 1, aggressive = 2, mystery = 3 };
 enum amount { small = 1, medium = 2, big = 3 };
 enum rarity { common, uncommon, rare, epic, legendary };
 
-class Item {
+class Item{
 private:
     std::string name;
     float weight;
@@ -40,9 +40,11 @@ public:
     bool isEquipable()       { return equipable; }
     bool isConsumable()      { return consumable; }
     rarity getRarity()       { return raridade; }
+
+    virtual void MudarAbstrata() = 0;
 };
 
-class Weapon : public Item {
+class Weapon final : public Item {
 private:
     int damage;
     int range;
@@ -63,29 +65,11 @@ public:
     int getRange()          { return range; }
     int getType()           { return type; }
     float getAttackSpeed()  { return attackSpeed; }
+
+    virtual void MudarAbstrata(){};
 };
 
-class Potion : public Item {
-private:
-    int healing;
-    int damage;
-    int type;
-
-public:
-    Potion(std::string name, float weight, int size, bool equipable, bool consumable,
-           int healing, int damage, int type, rarity raridade = common)
-        : Item(name, weight, size, equipable, consumable, raridade) {
-        this->healing = healing;
-        this->damage  = damage;
-        this->type    = type;
-    }
-
-    int getHealing() { return healing; }
-    int getDamage()  { return damage; }
-    int getType()    { return type; }
-};
-
-class Armor : public Item {
+class Armor final : public Item {
 private:
     int defense;
 
@@ -97,6 +81,118 @@ public:
     }
 
     int getDefense() const { return defense; }
+    virtual void MudarAbstrata(){};
 };
+
+class Ingredient final : public Item {
+    private:
+        int type;
+    
+    public:
+        Ingredient(int type,std::string name, float weight, int size, bool equipable, bool consumable)
+        : Item(name, weight, size, equipable, consumable) {
+            this->type=type;
+    }
+
+    void MudarAbstrata() override {
+        std::cout << "Invocando item\n";
+    }
+
+    void setType(int x){type=x;}
+
+    int getType(){return type;}
+};
+
+
+class Potion: public Item {
+
+    private:
+        int type;    // variavel para definir o tipo de poção, usando um Enum
+
+    public:
+        // CORRIGIDO: construtor deve ter o mesmo nome da classe (Potion, não CraftPotion)
+        // CORRIGIDO: inicialização da classe base deve usar o nome correto (Item, não CraftItem)
+        Potion(std::string name, float weight, int size, bool equipable, bool consumable, int type)
+            : Item(name, weight, size, equipable, consumable) {
+            this->type = type;
+        }
+
+        virtual int EfeitoPocao()=0;
+
+        void MudarAbstrata()=0;
+
+        
+}; // classe das poções
+    
+class Potion_Damage final: public Potion {
+    public:
+        Potion_Damage(std::string name, float weight, int size)
+        : Potion(name, weight, size, false, true, 0) {}
+
+        int EfeitoPocao() override {
+            return 0;
+        }
+
+        void MudarAbstrata() override {};
+
+    private:
+};
+
+class Potion_Health final: public Potion {
+    public:
+        Potion_Health(std::string name, float weight, int size)
+        : Potion(name, weight, size, false, true, 1) {}
+
+        int EfeitoPocao() override {
+            return 1;
+        }
+
+        void MudarAbstrata() override {};
+
+    private:
+};
+
+class Potion_Speed final: public Potion {
+    public:
+        Potion_Speed(std::string name, float weight, int size)
+        : Potion(name, weight, size, false, true, 2) {}
+
+        int EfeitoPocao() override {
+            return 2;
+        }
+
+        void MudarAbstrata() override {};
+
+    private:
+};
+
+class Potion_Luck final: public Potion {
+    public:
+        Potion_Luck(std::string name, float weight, int size)
+        : Potion(name, weight, size, false, true, 3) {}
+
+        int EfeitoPocao() override {
+            return 3;
+        }
+
+        void MudarAbstrata() override {};
+
+    private:
+};
+
+class Potion_Mult final: public Potion {
+    public:
+        Potion_Mult(std::string name, float weight, int size)
+        : Potion(name, weight, size, false, true, 4) {}
+
+        int EfeitoPocao() override {
+            return 4;
+        }
+
+        void MudarAbstrata() override {};
+
+    private:
+};
+
 
 #endif

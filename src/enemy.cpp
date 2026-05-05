@@ -2,7 +2,7 @@
 #include <string>
 using namespace std;
 
-class Enemy{
+class Enemy final{
     private:
         string name;
         int healthmax;
@@ -11,6 +11,7 @@ class Enemy{
         int range;
         float damage;
         float attackspeed;
+        int xpvalue;
     
     public:
         Enemy(string name, int healthmax,int health,int defence, int range, int damage, int attackspeed){
@@ -29,6 +30,7 @@ class Enemy{
         int getRange(){return range;};
         float getDamage(){return damage;};
         float getAttackSpeed(){return attackspeed;};
+        int getxpvalue(){return xpvalue;};
 
         string setName(string nome){name=nome;};
         int setHealthMax(int h){healthmax=h;};
@@ -37,4 +39,5 @@ class Enemy{
         int setRange(int r){range=r;};
         float setDamage(float d){damage=d;};
         float setAttackSpeed(float as){attackspeed=as;};
+        ~Enemy();
 };

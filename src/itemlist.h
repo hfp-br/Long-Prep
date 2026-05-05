@@ -88,6 +88,19 @@ extern ItemTemplate aneloUC;
 extern ItemTemplate anelorare;
 extern ItemTemplate aneloEP;
 extern ItemTemplate anelolend;
+// ingredientes
+extern ItemTemplate ingredientBase;
+extern ItemTemplate ingredienteDano;
+extern ItemTemplate ingredienteVida;
+extern ItemTemplate ingredienteSpeed;
+extern ItemTemplate ingredienteLuck;
+extern ItemTemplate ingredienteMult;
 // pocoes
+extern ItemTemplate pocaoDano;
+extern ItemTemplate pocaoVida;
+extern ItemTemplate pocaoSpeed;
+extern ItemTemplate pocaoLuck;
+extern ItemTemplate pocaoMult;
+
 
 #endif

@@ -1,8 +1,17 @@
 #include <iostream>
 #include <string>
+#include <vector>
 using namespace std;
 
-class Player {
+typedef struct{
+	int forca;
+	int constituicao;
+	int destreza;
+	int inteligencia;
+	int sorte;
+} atributes;
+
+class Player final{
 
 	private:
 		string name;			//Variavel para armazenar o nome do player
@@ -13,11 +22,12 @@ class Player {
 		bool backpack;			//Booleana para saber se o player esta com a mochila aberta
 		bool alive;				//Booleana para saber se o player esta vivo ou morto
 		int defense;
+		atributes atributos;
 
 	public:
 
 		// CORRIGIDO: construtor deve ter o mesmo nome da classe (Player, não Craftplayer)
-		Player(string name, int life, int life_max, int damage, float weight_capacity, bool backpack, bool alive, int defense){		//função para criar um player
+		Player(string name, int life, int life_max, int damage, float weight_capacity, bool backpack, bool alive, int defense, atributes atributos){		//função para criar um player
 			this->name = name;
 			this->life = life;
 			this->life_max = life_max;
@@ -26,6 +36,7 @@ class Player {
 			this->backpack = backpack;
 			this->alive = alive;
 			this->defense = defense;
+			this->atributos = atributos;
 		};
 
 		string getName() { return name; }						//função para pegar o nome do player

@@ -4,7 +4,7 @@
 #include <string>
 using namespace std;
 
-class Enemy{
+class Enemy final{
     private:
         string name;
         int healthmax;
@@ -15,9 +15,10 @@ class Enemy{
         float attackspeed;
         float attackTimer = 0.0f;
         int difficulty;
+        int xpvalue;
     
     public:
-        Enemy(string name, int healthmax,int health,int defense, int range, int damage, float attackspeed,int difficulty){
+        Enemy(string name, int healthmax,int health,int defense, int range, int damage, float attackspeed,int difficulty, int xpvalue){
             this->name = name;
             this->healthmax = healthmax;
             this->health = health;
@@ -26,6 +27,7 @@ class Enemy{
             this->damage = damage;
             this->attackspeed = attackspeed;
             this->difficulty=difficulty;
+            this->xpvalue=xpvalue;
         };
 
         string getName(){return name;};
@@ -37,6 +39,7 @@ class Enemy{
         float getAttackSpeed(){ return attackspeed; }
         float getAttackTimer(){ return attackTimer; }
         int getDifficulty(){return difficulty;}
+        int getxpvalue(){ return xpvalue; }
 
         void setName(string nome){name=nome;};
         void setHealthMax(int h){healthmax=h;};
@@ -51,6 +54,7 @@ class Enemy{
         void setAttackSpeed(float as){attackspeed=as;};
         void tickAttackTimer(float dt){ attackTimer += dt; }
         void resetAttackTimer(){ attackTimer = 0.0f; }
+
 };
 
 #endif

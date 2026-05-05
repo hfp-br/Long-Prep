@@ -27,46 +27,79 @@ const int screenWidth = 1280*1.5;
 const int screenHeight = 720*1.5;
 bool MousePressed = false;
 physicalObject* GrabbedObject = nullptr;
-Player player("hero", 100, 100, 5, 10.0f, true, true, 0);
+Player player("hero", 100, 100, 5, 10.0f, true, true, 0,(atributes){0,0,0,0,5});
+int bonuspocaomult=1;
+int bonuspocaodano=0;
+float bonuspocaospeed=0;
+int bonuspocaosorte=0;
+Ingredient* ingrediente1 = nullptr;
+Ingredient* ingrediente2 = nullptr;
+int ingredienteTipo1 = -1;
+int ingredienteTipo2 = -1;
+bool craftPendente = false;
+int craftT1 = -1, craftT2 = -1;
+b2BodyId craftBodyT1 = b2_nullBodyId;
+b2BodyId craftBodyT2 = b2_nullBodyId;
+
+
 
 void BattleManager(float dt, Player& player, Enemy& inimigo){
     player.tickAttackTimer(dt);
     inimigo.tickAttackTimer(dt);
-
+    
     if(inimigo.getAttackTimer() > inimigo.getAttackSpeed()){
         inimigo.resetAttackTimer();
-        int dano = max(0, (int)inimigo.getDamage() - player.getDefense());
+        float def = (float)(player.getDefense() + player.getAtributoconstituicao());
+        float reducao = def / (def + 33.3f);
+        int dano = max(1, (int)(inimigo.getDamage() * (1.0f - reducao)));
         player.setLife(player.getLife() - dano);
         cout << "Inimigo atacou! HP player: " << player.getLife() << endl;
     }
-
+    
     if(player.getAttackTimer() > player.getAttackSpeed()){
         player.resetAttackTimer();
-        int dano = max(0, player.getDamage() - inimigo.getDefense());
+        
+        bool critico = false;
+        
+        if(GetRandomValue(0, 100)< player.getAtributosorte()+bonuspocaosorte){
+            critico=true;
+        }
+
+        int dano = max(0, (player.getDamage() + player.getAtributoforca() + bonuspocaodano) - inimigo.getDefense());
+        if(critico==true){
+            dano=dano*3;
+            cout << "Critico!" << inimigo.getHealth() << endl;
+        }
         inimigo.setHealth(inimigo.getHealth() - dano);
         cout << "Player atacou! HP inimigo: " << inimigo.getHealth() << endl;
     }
 }
 
 void StatusUpdater(physicalObject& body){
+
     if(body.isEquipped && !body.wasEquipped){
         Item* item = body.templateData.itemData->item;
         
         Weapon* w = dynamic_cast<Weapon*>(item);
-        if(w) player.setDamage(player.getDamage() + w->getDamage());
-        if(w) player.setAttackSpeed(w->getAttackSpeed());
-        
+        if(w){
+            player.setDamage(player.getDamage() + w->getDamage()); // soma
+            float base = w->getAttackSpeed();
+            player.setBaseAttackSpeed(base);
+            player.setAttackSpeed(max(0.1f, base - player.getAtributodestreza() * 0.1f - bonuspocaospeed));
+        }
         Armor* a = dynamic_cast<Armor*>(item);
         if(a) player.setDefense(player.getDefense() + a->getDefense());
     }
-    
+
     if(!body.isEquipped && body.wasEquipped){
         Item* item = body.templateData.itemData->item;
         
         Weapon* w = dynamic_cast<Weapon*>(item);
-        if(w) player.setDamage(player.getDamage() - w->getDamage());
-        if(w) player.setAttackSpeed(1);
-        
+        if(w){
+            player.setDamage(player.getDamage() - w->getDamage()); // subtrai
+            player.setBaseAttackSpeed(1.0f);
+            player.setAttackSpeed(1.0f);
+        }   
         Armor* a = dynamic_cast<Armor*>(item);
         if(a) player.setDefense(player.getDefense() - a->getDefense());
     }
@@ -98,7 +131,7 @@ physicalObject ItemGenerator(b2WorldId world, ItemTemplate& templ, float xP, flo
     bodyDef.type = type;
     physicalObject Item;
     b2BodyId bodyId = b2CreateBody(world, &bodyDef);
-
+    
     if(!templ.itemPhysical->isCircle){
         b2Polygon bodyBox = b2MakeBox((templ.itemPhysical->width/2)/scale, (templ.itemPhysical->height/2)/scale);
         b2ShapeDef bodyshapeDef = b2DefaultShapeDef();
@@ -126,12 +159,14 @@ physicalObject ItemGenerator(b2WorldId world, ItemTemplate& templ, float xP, flo
     return Item;
 }
 
+
 struct InventoryContext {
     Texture2D openbackpackTex;
     Texture2D equipamentTab;
     Texture2D backgroundtexture;
     Texture2D accessoryslot;
     Texture2D trash;
+    Texture2D bar1;
     Image backgroundimage;
     
     b2WorldId world;
@@ -149,8 +184,41 @@ struct InventoryContext {
     bool itemOnTrash = false;
 };
 
+
 InventoryContext inv;
 bool spawnedThisGame = false;
+
+void PotionCrafter(physicalObject& body){
+    Item* item = body.templateData.itemData->item;
+    Ingredient* i = dynamic_cast<Ingredient*>(item);
+    if(!i) return;
+
+    b2Vec2 mousePoint = {(float)GetMouseX() / scale, (float)GetMouseY() / scale};
+    if(!IsMouseButtonPressed(1)) return;
+    if(!b2Shape_TestPoint(body.shapeId, mousePoint)) return;
+
+    int tipo = i->getType();
+
+    if(ingredienteTipo1 == -1){
+        ingredienteTipo1 = tipo;
+        craftBodyT1 = body.bodyId; // guarda o body exato
+        return;
+    }
+    if(ingredienteTipo1 == tipo) return;
+
+    ingredienteTipo2 = tipo;
+    craftBodyT2 = body.bodyId; // guarda o body exato
+    craftT1 = ingredienteTipo1;
+    craftT2 = ingredienteTipo2;
+    ingredienteTipo1 = -1;
+    ingredienteTipo2 = -1;
+
+    if(craftT2 == 5){ 
+        int tmp = craftT1; craftT1 = craftT2; craftT2 = tmp;
+        b2BodyId tmpId = craftBodyT1; craftBodyT1 = craftBodyT2; craftBodyT2 = tmpId;
+    }
+    if(craftT1 == 5) craftPendente = true;
+}
 
 void grab(physicalObject& body){
     b2Vec2 mousePoint = {(float)GetMouseX() / scale, (float)GetMouseY() / scale};
@@ -285,9 +353,9 @@ std::vector<Enemy*> tier3 = {&Colossus, &Knight, &Defender};
 std::vector<Enemy*> tier4 = {&Dragon};
 
 Enemy* getRandomEnemy(int fase) {
-    if(fase % 50 == 0)return &Dragon;
-    else if((fase % 10)==0)return tier3[GetRandomValue(0, tier3.size()-1)];
-    else if((fase % 5)==0)return tier2[GetRandomValue(0, tier2.size()-1)];
+    if(fase % 50 == 0 && fase > 0)return &Dragon;
+    else if((fase % 10)==0 && fase > 0)return tier3[GetRandomValue(0, tier3.size()-1)];
+    else if((fase % 5)==0 &&  fase > 0)return tier2[GetRandomValue(0, tier2.size()-1)];
     else return tier1[GetRandomValue(0, tier1.size()-1)];
 }
 
@@ -317,10 +385,22 @@ void spawnRandomItems(b2WorldId world, std::vector<physicalObject>& TotalItems, 
         }
     }
 }
-    int quantidadeSpawn = 1;
+    int quantidadeSpawn = 1 * bonuspocaomult;
     for(int i = 0; i < quantidadeSpawn; i++){
         int idx = GetRandomValue(0, itensDisponiveis.size()-1);
         TotalItems.push_back(ItemGenerator(world, *itensDisponiveis[idx],
+            screenWidth/2 + GetRandomValue(-200, 200),
+            screenHeight/2 - 300,
+            b2_dynamicBody));
+    }
+}
+
+void spawnIngredients(b2WorldId world, std::vector<physicalObject>& TotalItems){
+    std::vector<ItemTemplate*> todosIngredientes = {&ingredientBase,&ingredienteDano,&ingredienteVida,&ingredienteSpeed,&ingredienteLuck,&ingredienteMult};
+    int quantidadeSpawn = 1 * bonuspocaomult;
+    for(int i=0; i<quantidadeSpawn; i++){
+        int idx = GetRandomValue(0, 5);
+        TotalItems.push_back(ItemGenerator(world, *todosIngredientes[idx],
             screenWidth/2 + GetRandomValue(-200, 200),
             screenHeight/2 - 300,
             b2_dynamicBody));
@@ -333,6 +413,7 @@ void inventory_init() {
     inv.backgroundimage = LoadImage("images/fundo.png");
     inv.accessoryslot = LoadTexture("images/inventory slot.png");
     inv.trash = LoadTexture("images/lixo.png");
+    inv.bar1 = LoadTexture("images/bar 1.png");
 
     ImageFormat(&inv.backgroundimage, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     inv.backgroundtexture = LoadTextureFromImage(inv.backgroundimage);
@@ -385,13 +466,35 @@ void inventory_draw() {
         (Vector2){screenWidth/2 - (float)(inv.openbackpackTex.width/4) - 150,
             screenHeight/2 - (float)(inv.openbackpackTex.height/4) - 150},
             0, inv.backpackScale, WHITE);
+            
     DrawTextureEx(inv.accessoryslot,(Vector2){screenWidth/2+540, screenHeight/2+25},0,0.1,WHITE);
     DrawTextureEx(inv.trash, (Vector2){50,screenHeight-250}, 20, 0.4, WHITE);
-            
-    DrawText(TextFormat("Dano: %d",   player.getDamage()),  10, 10, 20, RED);
-    DrawText(TextFormat("Defesa: %d", player.getDefense()), 10, 35, 20, BLUE);
-    DrawText("SPACE para iniciar run", 10, 60, 20, DARKGRAY);
-                    
+    DrawTextureEx(inv.bar1, (Vector2){screenWidth/2+660,screenHeight/2-175}, 0, 0.2, WHITE);
+    DrawTextureEx(inv.bar1, (Vector2){screenWidth/2+660,screenHeight/2-125}, 0, 0.2, WHITE);
+    DrawTextureEx(inv.bar1, (Vector2){screenWidth/2+660,screenHeight/2-75}, 0, 0.2, WHITE);
+    DrawTextureEx(inv.bar1, (Vector2){screenWidth/2+660,screenHeight/2-25}, 0, 0.2, WHITE);
+    DrawTextureEx(inv.bar1, (Vector2){screenWidth/2+660,screenHeight/2+25}, 0, 0.2, WHITE);
+    DrawTextureEx(inv.bar1, (Vector2){screenWidth/2+660,screenHeight/2+75}, 0, 0.2, WHITE);
+    DrawTextureEx(inv.bar1, (Vector2){screenWidth/2+660,screenHeight/2+125}, 0, 0.2, WHITE);
+    DrawTextureEx(inv.bar1, (Vector2){screenWidth/2+660,screenHeight/2+175}, 0, 0.2, WHITE);
+    
+    DrawText(TextFormat("Dano: %d",    player.getDamage() + player.getAtributoforca()),      screenWidth/2+660, screenHeight/2-175, 20, RED);
+    DrawText(TextFormat("Defesa: %d",  player.getDefense() + player.getAtributoconstituicao()), screenWidth/2+660, screenHeight/2-125, 20, RED);
+    DrawText(TextFormat("Attack Speed: %.1f", player.getAttackSpeed()), screenWidth/2+660, screenHeight/2-75, 20, RED);
+    DrawText(TextFormat("Forca: %d",player.getAtributoforca()),  screenWidth/2+660, screenHeight/2-25, 20, RED);
+    DrawText(TextFormat("Destreza: %d",player.getAtributodestreza()),  screenWidth/2+660, screenHeight/2+25, 20, RED);
+    DrawText(TextFormat("Constituicao: %d",player.getAtributoconstituicao()),  screenWidth/2+660, screenHeight/2+75, 20, RED);
+    DrawText(TextFormat("Inteligencia: %d",player.getAtributointeligencia()),  screenWidth/2+660, screenHeight/2+125, 20, RED);
+    DrawText(TextFormat("Peso Atual: %.1f/%.1f",player.getCurrent_weight(),player.getWeight_Capacity()),  screenWidth/2+660, screenHeight/2+175, 20, RED);
+    DrawText(TextFormat("Sorte: %d",player.getAtributosorte()),  screenWidth/2+660, screenHeight/2+225, 20, RED);
+
+    if(player.getunspentpoints()>0){
+        for(int i=0;i<4;i++){
+            DrawText(TextFormat("+"),  screenWidth/2+840, screenHeight/2-25+(i*50), 20, BLUE);
+            DrawRectangleRec((Rectangle){screenWidth/2+840,screenHeight/2-25+((float)i*50),10,10}, GREEN);
+        }
+    }
+
     for(const physicalObject& body : inv.TotalItems){
         b2Rot rot = b2Body_GetRotation(body.bodyId);
         b2Vec2 pos = b2Body_GetPosition(body.bodyId);
@@ -420,40 +523,67 @@ void run_init() {
             runc.itensEquipadosIds.push_back(body.bodyId);
         }
     }
-
+    
     runc.faseAtual++;
     runc.inimigo = getRandomEnemy(runc.faseAtual);
     runc.inimigo->setHealth(runc.inimigo->getHealthMax());
     runc.inimigo->resetAttackTimer();
     player.resetAttackTimer();
 }
-        
+
 void inventory_update(float dt) {
     b2World_Step(inv.world, dt, 4);
-
+    
+    
     if(IsKeyPressed(KEY_A)){runc.faseAtual--;}
     if(IsKeyPressed(KEY_D)){runc.faseAtual++;}
-
+    
     if(IsKeyDown(KEY_I)){spawnRandomItems(inv.world, inv.TotalItems, 5);}
+    if(IsKeyDown(KEY_K)){spawnIngredients(inv.world, inv.TotalItems);}
     if(IsKeyPressed(KEY_C)){
         inv.TotalItems.erase(
             std::remove_if(inv.TotalItems.begin(), inv.TotalItems.end(),
-                [](physicalObject& obj){
-                    if(!obj.isEquipped){
-                        b2DestroyBody(obj.bodyId);
-                        return true;
-                    }
-                    return false;
-                }),
+            [](physicalObject& obj){
+                if(!obj.isEquipped){
+                    b2DestroyBody(obj.bodyId);
+                    return true;
+                }
+                return false;
+            }),
             inv.TotalItems.end()
         );
     }
     
-    
+    float pesoTotal=0;
+    for(physicalObject& body : inv.TotalItems){
+        if(!body.isEquipped){
+            pesoTotal += body.templateData.itemData->item->getWeight();
+        }
+    }
+    player.setcurrent_weight(pesoTotal);
+
+    if(player.getunspentpoints()>0){
+        Rectangle Mousepos = {(float)GetMouseX(),(float)GetMouseY(),5,5};
+        for(int i=0;i<4;i++){
+            if(CheckCollisionRecs(Mousepos, (Rectangle){screenWidth/2+840,screenHeight/2-25+((float)i*50),10,10})==true){
+                if(IsMouseButtonPressed(MouseButton(0))){
+                    player.setAtributosorte(player.getAtributosorte()+player.getLevel());
+                    if(i==0){player.setAtributoforca(player.getAtributoforca()+1);}
+                    if(i==1){player.setAtributodestreza(player.getAtributodestreza()+1);}
+                    if(i==2){player.setAtributoconstituicao(player.getAtributoconstituicao()+1);}
+                    if(i==3){player.setAtributointeligencia(player.getAtributointeligencia()+1);}
+                    player.setunspentpoints(player.getunspentpoints()-1);
+                    break;
+                }
+            }
+        }
+    }
+
     for(physicalObject& body : inv.TotalItems){
         grab(body);
         StatusUpdater(body);
-        
+        PotionCrafter(body);
+
         b2Vec2 pos = b2Body_GetPosition(body.bodyId);
         float jumpeffect = GetRandomValue(-70, -20);
         if(jumpeffect == -70) jumpeffect = -150;
@@ -502,21 +632,59 @@ void inventory_update(float dt) {
         for(InventoryPivotPoint& ponto : inv.SlotsEquipamentos){
             PivotChecker(body, ponto);
         }
+    }
+
+    if(craftPendente){
+        craftPendente = false;
+
+        switch(craftT2){
+            case 0: bonuspocaodano  = 5 * player.getAtributointeligencia(); break;
+            case 1: player.setLife(min(player.getLife_max(), player.getLife()+25+(10*player.getAtributointeligencia()))); break;
+            case 2: bonuspocaospeed = player.getAtributointeligencia() / 15.0f; break;
+            case 3: bonuspocaosorte = player.getAtributointeligencia() * 2; break;
+            case 4: bonuspocaomult  = 1 + player.getAtributointeligencia() / 5; break;
         }
 
+        ItemTemplate* pocaoTemplate = nullptr;
+        if(craftT2==0) pocaoTemplate = &pocaoDano;
+        if(craftT2==1) pocaoTemplate = &pocaoVida;
+        if(craftT2==2) pocaoTemplate = &pocaoSpeed;
+        if(craftT2==3) pocaoTemplate = &pocaoLuck;
+        if(craftT2==4) pocaoTemplate = &pocaoMult;
+        if(pocaoTemplate) inv.TotalItems.push_back(ItemGenerator(inv.world, *pocaoTemplate, screenWidth/2, screenHeight/2-300, b2_dynamicBody));
 
-    if(IsKeyPressed(KEY_SPACE)){
-        run_init();
-        currentgamestage = run;
+        std::vector<b2BodyId> paraDestruir = {craftBodyT1, craftBodyT2};
+        inv.TotalItems.erase(
+            std::remove_if(inv.TotalItems.begin(), inv.TotalItems.end(),
+                [&](physicalObject& obj){
+                    for(b2BodyId id : paraDestruir)
+                        if(B2_ID_EQUALS(obj.bodyId, id)) return true;
+                    return false;
+                }),
+            inv.TotalItems.end()
+        );
+        for(b2BodyId id : paraDestruir) b2DestroyBody(id);
+
+        craftBodyT1 = b2_nullBodyId;
+        craftBodyT2 = b2_nullBodyId;
     }
-}
+
+
+        if(IsKeyPressed(KEY_SPACE)){
+            run_init();
+            currentgamestage = run;
+        }
+    }
 
 void run_update(float dt) {
     if(runc.inimigo == nullptr) return;
-    
     BattleManager(dt, player, *runc.inimigo);
     
     if(player.getLife() <= 0){
+    bonuspocaomult=1;
+    bonuspocaodano=0;
+    bonuspocaospeed=0;
+    bonuspocaosorte=0;
     runc.faseAtual = 0;
     player.setLife(player.getLife_max());
     player.setDamage(5);
@@ -545,13 +713,30 @@ void run_update(float dt) {
     ponto.equippedBodyId = b2_nullBodyId;
     runc.itensEquipadosIds.clear();
 
-    spawnRandomItems(inv.world, inv.TotalItems, 0);
+    if(player.getCurrent_weight()<player.getWeight_Capacity()){
+        spawnRandomItems(inv.world, inv.TotalItems, 0);
+    }
     runc.inimigo = nullptr;
     currentgamestage = inventory;
     return;
 }
             
     if(runc.inimigo->getHealth() <= 0){
+        bonuspocaomult=1;
+        bonuspocaodano=0;
+        bonuspocaospeed=0;
+        bonuspocaosorte=0;
+
+        player.setXp(player.getXp()+runc.inimigo->getxpvalue());
+
+        if(player.getXp()>=player.getxpfornextlevel()){
+            player.setXp(player.getXp()-player.getxpfornextlevel());
+            player.setunspentpoints(player.getunspentpoints()+1);
+            player.setlevel(player.getLevel()+1);
+            player.setxpfornextlevel(player.getxpfornextlevel()*1.5);
+
+            cout << "LEVEL UP" << endl;
+        }
 
         int dif = runc.inimigo->getDifficulty();
         int quantidade = 1;
@@ -561,8 +746,15 @@ void run_update(float dt) {
         if(dif == 4) quantidade = 1;
         
         for(int i=0; i<quantidade; i++){
-            spawnRandomItems(inv.world, inv.TotalItems, dif);
+            if(player.getCurrent_weight()<player.getWeight_Capacity()){
+                spawnRandomItems(inv.world, inv.TotalItems, dif);
+            }
         }
+
+        int random = GetRandomValue(1, 100);
+            if (random < (25+player.getAtributosorte() + bonuspocaosorte)){
+                spawnIngredients(inv.world, inv.TotalItems);
+            }
 
         runc.inimigo = nullptr;
         currentgamestage = inventory;
@@ -574,16 +766,16 @@ void run_draw() {
     if(runc.inimigo == nullptr) return;
 
     ClearBackground(BLACK);
-    DrawText(TextFormat("Fase: %d",       runc.faseAtual),                  10, 10,  20, YELLOW);
-    DrawText(TextFormat("Inimigo: %s",    runc.inimigo->getName().c_str()), 10, 35,  25, WHITE);
-    DrawText(TextFormat("HP Player: %d",  player.getLife()),                 10, 70,  30, GREEN);
-    DrawText(TextFormat("HP Inimigo: %d", runc.inimigo->getHealth()),        10, 110, 30, RED);
-    DrawText(TextFormat("Dano: %d",       player.getDamage()),               10, 150, 20, WHITE);
-    DrawText(TextFormat("Defesa: %d",     player.getDefense()),              10, 175, 20, WHITE);
+    DrawText(TextFormat("Fase: %d",runc.faseAtual),                  10, 10,  20, YELLOW);
+    DrawText(TextFormat("Inimigo: %s",runc.inimigo->getName().c_str()), 10, 35,  25, WHITE);
+    DrawText(TextFormat("HP Player: %d",player.getLife()),                 10, 70,  30, GREEN);
+    DrawText(TextFormat("HP Inimigo: %d",runc.inimigo->getHealth()),        10, 110, 30, RED);
+    DrawText(TextFormat("Dano: %d",player.getDamage()),               10, 150, 20, WHITE);
+    DrawText(TextFormat("Defesa: %d",player.getDefense()),              10, 175, 20, WHITE);
     DrawText(TextFormat("Attack Speed: %.1f", player.getAttackSpeed()),      10, 200, 20, WHITE);
     DrawText("ESC para voltar ao inventario", 10, screenHeight-30, 20, DARKGRAY);
 }
-                    
+
                     
 int main() {
     const int screenWidth  = 1280*1.5;
@@ -592,7 +784,7 @@ int main() {
     InitWindow(screenWidth, screenHeight, "long prep");
     SetTargetFPS(60);
     InitItemList();
-    
+    //OMG LINHA 670 QUE INCRIVEL
     currentgamestage = inventory;
     inventory_init();
     

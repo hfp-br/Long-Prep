@@ -213,6 +213,63 @@ ItemData anelolendData = {&anelolendArmor};
 physicalData anelolendPhysical = {{0}, 80, 65, 0, false, 80, 65, accessory};
 ItemTemplate anelolend = {&anelolendData, &anelolendPhysical};
 
+// ===== INGREDIENTES =====
+Ingredient ingredientBaseIng(5,"Base de pocao",0.2,1,false,true);
+ItemData ingredientBaseData = {&ingredientBaseIng};
+physicalData ingredientBasePhysical = {{0},50,100,0,false,50,100};
+ItemTemplate ingredientBase = {&ingredientBaseData,&ingredientBasePhysical};
+
+Ingredient ingredienteDanoIng(0,"Lodo da morte",0.4,1,false,true);
+ItemData ingredienteDanoData = {&ingredienteDanoIng};
+physicalData ingredienteDanoPhysical = {{0},100,100,50,true,100,100};
+ItemTemplate ingredienteDano = {&ingredienteDanoData,&ingredienteDanoPhysical};
+
+Ingredient ingredienteVidaIng(1,"Ervas de menta",0.4,1,false,true);
+ItemData ingredienteVidaData = {&ingredienteVidaIng};
+physicalData ingredienteVidaPhysical = {{0},50,90,0,false,75,90};
+ItemTemplate ingredienteVida = {&ingredienteVidaData,&ingredienteVidaPhysical};
+
+Ingredient ingredienteSpeedIng(2,"Pena de Aguia",0.4,1,false,true);
+ItemData ingredienteSpeedData = {&ingredienteSpeedIng};
+physicalData ingredienteSpeedPhysical = {{0},25,100,0,false,25,100};
+ItemTemplate ingredienteSpeed = {&ingredienteSpeedData,&ingredienteSpeedPhysical};
+
+Ingredient ingredienteLuckIng(3,"Trevo 4 folhas",0.4,1,false,true);
+ItemData ingredienteLuckData = {&ingredienteLuckIng};
+physicalData ingredienteLuckPhysical = {{0},90,90,45,true,100,100};
+ItemTemplate ingredienteLuck = {&ingredienteLuckData,&ingredienteLuckPhysical};
+
+Ingredient ingredienteMultIng(4,"Estrela do Alem",0.4,1,false,true);
+ItemData ingredienteMultData = {&ingredienteMultIng};
+physicalData ingredienteMultPhysical = {{0},75,75,50,true,100,100};
+ItemTemplate ingredienteMult = {&ingredienteMultData,&ingredienteMultPhysical};
+
+// ===== POCOES =====
+Potion_Damage pocaoDanoPoc("Base de pocao",0.2,1);
+ItemData pocaoDanoData = {&pocaoDanoPoc};
+physicalData pocaoDanoPhysical = {{0},50,100,0,false,50,100};
+ItemTemplate pocaoDano = {&pocaoDanoData,&pocaoDanoPhysical};
+
+Potion_Health pocaoVidaPoc("Base de pocao",0.2,1);
+ItemData pocaoVidaData = {&pocaoVidaPoc};
+physicalData pocaoVidaPhysical = {{0},50,100,0,false,50,100};
+ItemTemplate pocaoVida = {&pocaoVidaData,&pocaoVidaPhysical};
+
+Potion_Speed pocaoSpeedPoc("Base de pocao",0.2,1);
+ItemData pocaoSpeedData = {&pocaoSpeedPoc};
+physicalData pocaoSpeedPhysical = {{0},50,100,0,false,50,100};
+ItemTemplate pocaoSpeed = {&pocaoSpeedData,&pocaoSpeedPhysical};
+
+Potion_Luck pocaoLuckPoc("Base de pocao",0.2,1);
+ItemData pocaoLuckData = {&pocaoLuckPoc};
+physicalData pocaoLuckPhysical = {{0},50,100,0,false,50,100};
+ItemTemplate pocaoLuck = {&pocaoLuckData,&pocaoLuckPhysical};
+
+Potion_Mult pocaoMultPoc("Base de pocao",0.2,1);
+ItemData pocaoMultData = {&pocaoMultPoc};
+physicalData pocaoMultPhysical = {{0},50,100,0,false,50,100};
+ItemTemplate pocaoMult = {&pocaoMultData,&pocaoMultPhysical};
+
 
 void InitItemList() {
     // ===== ESPADAS =====
@@ -270,6 +327,21 @@ void InitItemList() {
     anelorarePhysical.texture      = LoadTexture("images/Itens/sapphire ring.png");
     aneloEPPhysical.texture        = LoadTexture("images/Itens/ruby ring.png");
     anelolendPhysical.texture      = LoadTexture("images/Itens/dragon ring.png");
+
+    // ===== INGREDIENTES ======
+    ingredientBasePhysical.texture   = LoadTexture("images/Itens/pocao vazia.png");
+    ingredienteDanoPhysical.texture  = LoadTexture("images/Itens/ingredientedano.png");
+    ingredienteVidaPhysical.texture  = LoadTexture("images/Itens/ingredientevida.png");
+    ingredienteSpeedPhysical.texture = LoadTexture("images/Itens/ingredientespeed.png");
+    ingredienteLuckPhysical.texture  = LoadTexture("images/Itens/ingredienteSorte.png");
+    ingredienteMultPhysical.texture  = LoadTexture("images/Itens/ingredientemult.png");
+    
+    // ===== POCOES =====
+    pocaoDanoPhysical.texture = LoadTexture("images/Itens/pocao dano.png");
+    pocaoVidaPhysical.texture = LoadTexture("images/Itens/pocao vida.png");
+    pocaoSpeedPhysical.texture = LoadTexture("images/Itens/pocao velocidade.png");
+    pocaoLuckPhysical.texture = LoadTexture("images/Itens/pocao sorte.png");
+    pocaoMultPhysical.texture = LoadTexture("images/Itens/pocao mult.png");
 
     // ===== FILTRO EM TODOS =====
     SetTextureFilter(espadacurtaPhysical.texture,    TEXTURE_FILTER_BILINEAR);

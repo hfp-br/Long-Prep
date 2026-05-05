@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <random>
+#include <stdexcept>
 using namespace std;
 
 enum weaponType { sword = 1, polearm = 2, bow = 3 }; // enumeração para escolher o tipo de arma da classe weapon
@@ -51,11 +52,10 @@ class Item {
 
         void setName(string n) {    // função para atribuir um nome para o item
             if (n.empty()) {
-                cout << "Erro: Nome nao pode ser vazio" << endl;
-                return;
+                throw invalid_argument("Peso nao pode ser negativo");
             }
             if (n.length() > 20) {
-                cout << "Erro: Seu nome ultrapassou o limite de 20 letras" << endl;
+                throw invalid_argument("Ultrapassou o limite de 20 caracteres");
                 return;
             }
             name = n;
@@ -85,9 +85,13 @@ class Item {
             consumable = c;
         }
 
+        virtual void MudarAbstrata() = 0;
+
+        virtual ~Item() {}
+
 }; // classe do item
 
-class Weapon : public Item {
+class Weapon final : public Item{
 
     private:
         int damage;
@@ -132,9 +136,13 @@ class Weapon : public Item {
             type = t;
         }
 
+        void MudarAbstrata() override {
+            cout << "Atacando com arma\n";
+        }
+
 }; // classe das armas derivada do item
 
-class Armor : public Item {
+class Armor final : public Item {
 private:
     int defense;
 
@@ -148,58 +156,118 @@ public:
     int getDefense() const { return defense; }
 
     void setDefense(int d) { defense = d; }
+
+    void MudarAbstrata() override {
+        cout << "Equipando armadura\n";
+    }
+};
+
+class Ingredient final : public Item {
+    private:
+        int type;
+    
+    public:
+        Ingredient(int type,string name, float weight, int size, bool equipable, bool consumable)
+        : Item(name, weight, size, equipable, consumable) {
+            this->type=type;
+    }
+
+    void MudarAbstrata() override {
+        cout << "Invocando item\n";
+    }
+
+    void setType(int x){type=x;}
+
+    int getType(){return type;}
 };
 
 
-class Potion : public Item {
+class Potion: public Item {
 
     private:
-        int healing; // variavel para armazenar a quantidade de vida que a poção ira fornecer
-        int damage;  // variavel para armazenar a quantidade de dano que a poção ira fornecer
         int type;    // variavel para definir o tipo de poção, usando um Enum
 
     public:
         // CORRIGIDO: construtor deve ter o mesmo nome da classe (Potion, não CraftPotion)
         // CORRIGIDO: inicialização da classe base deve usar o nome correto (Item, não CraftItem)
-        Potion(string name, float weight, int size, bool equipable, bool consumable, int healing, int damage, int type)
+        Potion(string name, float weight, int size, bool equipable, bool consumable, int type)
             : Item(name, weight, size, equipable, consumable) {
-            this->healing = healing;
-            this->damage = damage;
             this->type = type;
         }
 
-        int getHealing() { return healing; }    // função para pegar a informação da cura da poção
-        int getDamage()  { return damage; }     // função para pegar a informação do dano da poção
-        int getType()    { return type; }       // função para pegar o tipo da poção
+        virtual int EfeitoPocao()=0;
 
-        void setHealing(int h) {    // função para setar a quantidade de vida que a poção dá
-            healing = h;
-        }
+        void MudarAbstrata()=0;
 
-        void setDamage(int d) {     // função para setar a quantidade de dano que a poção dá
-            damage = d;
-        }
-
-        void setType(int t) {       // função para setar o tipo de poção
-            type = t;
-
-            if (t == mystery) {     // Essa parte caso seja escolhido o tipo misterio os atributos da poção são atribuidos aleatoriamente entre uma das 3 possibilidades
-                int n = gerarAleatorio(1, 3);
-
-                switch (n) {
-                    case 1:
-                        healing = 25;
-                        break;
-                    case 2:
-                        damage = 10;
-                        break;
-                    case 3:
-                        healing = -10;
-                        damage = 10;
-                        break;
-                }
-            }
-        }
-
+        
 }; // classe das poções
+    
+class Potion_Damage final: public Potion {
+    public:
+        Potion_Damage(string name, float weight, int size)
+        : Potion(name, weight, size, false, true, 0) {}
 
+        int EfeitoPocao() override {
+            return 0;
+        }
+
+        void MudarAbstrata() override {};
+
+    private:
+};
+
+class Potion_Health final: public Potion {
+    public:
+        Potion_Health(string name, float weight, int size)
+        : Potion(name, weight, size, false, true, 1) {}
+
+        int EfeitoPocao() override {
+            return 1;
+        }
+
+        void MudarAbstrata() override {};
+
+    private:
+};
+
+class Potion_Speed final: public Potion {
+    public:
+        Potion_Speed(string name, float weight, int size)
+        : Potion(name, weight, size, false, true, 2) {}
+
+        int EfeitoPocao() override {
+            return 2;
+        }
+
+        void MudarAbstrata() override {};
+
+    private:
+};
+
+class Potion_Luck final: public Potion {
+    public:
+        Potion_Luck(string name, float weight, int size)
+        : Potion(name, weight, size, false, true, 3) {}
+
+        int EfeitoPocao() override {
+            return 3;
+        }
+
+        void MudarAbstrata() override {};
+
+    private:
+};
+
+class Potion_Mult final: public Potion {
+    public:
+        Potion_Mult(string name, float weight, int size)
+        : Potion(name, weight, size, false, true, 4) {}
+
+        int EfeitoPocao() override {
+            return 4;
+        }
+
+        void MudarAbstrata() override {};
+
+    private:
+};
