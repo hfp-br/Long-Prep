@@ -12,3 +12,4 @@ Enemy Colossus("Colossus",300,300,0,0,20,3,3,60);
 Enemy Knight("Knight",150,150,7,0,15,(float)0.5,3,70);
 Enemy Defender("Defender",150,150,0,0,15,1,3,50);
 Enemy Dragon("Dragon",500,500,10,0,50,5,4,250);
+

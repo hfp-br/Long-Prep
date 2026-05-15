@@ -14,7 +14,19 @@ enum potionType { support = 1, aggressive = 2, mystery = 3 };
 enum amount { small = 1, medium = 2, big = 3 };
 enum rarity { common, uncommon, rare, epic, legendary };
 
-class Item{
+class IInteragivel {
+public:
+    virtual void interagir() = 0;
+    virtual ~IInteragivel() = default;
+};
+
+class ICraftavel {
+public:
+    virtual int getCraftType() const = 0;
+    virtual ~ICraftavel() = default;
+};
+
+class Item : public IInteragivel{
 private:
     std::string name;
     float weight;
@@ -41,7 +53,7 @@ public:
     bool isConsumable()      { return consumable; }
     rarity getRarity()       { return raridade; }
 
-    virtual void MudarAbstrata() = 0;
+    virtual void interagir() = 0;
 };
 
 class Weapon final : public Item {
@@ -66,7 +78,7 @@ public:
     int getType()           { return type; }
     float getAttackSpeed()  { return attackSpeed; }
 
-    virtual void MudarAbstrata(){};
+    virtual void interagir(){};
 };
 
 class Armor final : public Item {
@@ -81,10 +93,10 @@ public:
     }
 
     int getDefense() const { return defense; }
-    virtual void MudarAbstrata(){};
+    virtual void interagir(){};
 };
 
-class Ingredient final : public Item {
+class Ingredient final : public Item, public ICraftavel{
     private:
         int type;
     
@@ -94,13 +106,15 @@ class Ingredient final : public Item {
             this->type=type;
     }
 
-    void MudarAbstrata() override {
+    void interagir() override {
         std::cout << "Invocando item\n";
     }
 
     void setType(int x){type=x;}
 
-    int getType(){return type;}
+    int getCraftType() const override {
+        return type;
+    }
 };
 
 
@@ -119,7 +133,7 @@ class Potion: public Item {
 
         virtual int EfeitoPocao()=0;
 
-        void MudarAbstrata()=0;
+        void interagir()=0;
 
         
 }; // classe das poções
@@ -133,7 +147,7 @@ class Potion_Damage final: public Potion {
             return 0;
         }
 
-        void MudarAbstrata() override {};
+        void interagir() override {};
 
     private:
 };
@@ -147,7 +161,7 @@ class Potion_Health final: public Potion {
             return 1;
         }
 
-        void MudarAbstrata() override {};
+        void interagir() override {};
 
     private:
 };
@@ -161,7 +175,7 @@ class Potion_Speed final: public Potion {
             return 2;
         }
 
-        void MudarAbstrata() override {};
+        void interagir() override {};
 
     private:
 };
@@ -175,7 +189,7 @@ class Potion_Luck final: public Potion {
             return 3;
         }
 
-        void MudarAbstrata() override {};
+        void interagir() override {};
 
     private:
 };
@@ -189,7 +203,7 @@ class Potion_Mult final: public Potion {
             return 4;
         }
 
-        void MudarAbstrata() override {};
+        void interagir() override {};
 
     private:
 };

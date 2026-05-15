@@ -8,18 +8,19 @@ enum weaponType { sword = 1, polearm = 2, bow = 3 }; // enumeração para escolh
 enum potionType { support = 1, aggressive = 2, mystery = 3 }; // enumeração para escolher o tipo de poção da classe potion
 enum amount { small = 1, medium = 2, big = 3 };
 
-int gerarAleatorio(int x, int y) {
-    // random_device fornece uma semente não-determinística
-    std::random_device rd;
-    // mt19937 é um motor de números aleatórios rápido e de boa qualidade
-    std::mt19937 gen(rd());
-    // Define a distribuição uniforme entre x e y
-    std::uniform_int_distribution<> dis(x, y);
+class IInteragivel {
+public:
+    virtual void interagir() = 0;
+    virtual ~IInteragivel() = default;
+};
 
-    return dis(gen);
-}
+class ICraftavel {
+public:
+    virtual int getCraftType() const = 0;
+    virtual ~ICraftavel() = default;
+};
 
-class Item {
+class Item : public IInteragivel {
 
     private:                // Aqui estão as variáveis privadas da classe Item que não devem ser acessadas por qualquer um
 
@@ -85,7 +86,7 @@ class Item {
             consumable = c;
         }
 
-        virtual void MudarAbstrata() = 0;
+        virtual void interagir() = 0;
 
         virtual ~Item() {}
 
@@ -136,7 +137,8 @@ class Weapon final : public Item{
             type = t;
         }
 
-        void MudarAbstrata() override {
+        
+        void interagir() override {
             cout << "Atacando com arma\n";
         }
 
@@ -157,28 +159,28 @@ public:
 
     void setDefense(int d) { defense = d; }
 
-    void MudarAbstrata() override {
+    void interagir() override {
         cout << "Equipando armadura\n";
     }
 };
 
-class Ingredient final : public Item {
-    private:
-        int type;
-    
-    public:
-        Ingredient(int type,string name, float weight, int size, bool equipable, bool consumable)
+class Ingredient final : public Item, public ICraftavel {
+private:
+    int type;
+
+public:
+    Ingredient(int type, string name, float weight, int size, bool equipable, bool consumable)
         : Item(name, weight, size, equipable, consumable) {
-            this->type=type;
+        this->type = type;
     }
 
-    void MudarAbstrata() override {
-        cout << "Invocando item\n";
+    int getCraftType() const override {
+        return type;
     }
 
-    void setType(int x){type=x;}
-
-    int getType(){return type;}
+    void interagir() override {
+        cout << "Ingrediente usado no craft\n";
+    }
 };
 
 
@@ -197,7 +199,7 @@ class Potion: public Item {
 
         virtual int EfeitoPocao()=0;
 
-        void MudarAbstrata()=0;
+        void interagir()=0;
 
         
 }; // classe das poções
@@ -211,7 +213,7 @@ class Potion_Damage final: public Potion {
             return 0;
         }
 
-        void MudarAbstrata() override {};
+        void interagir() override {};
 
     private:
 };
@@ -225,7 +227,7 @@ class Potion_Health final: public Potion {
             return 1;
         }
 
-        void MudarAbstrata() override {};
+        void interagir() override {};
 
     private:
 };
@@ -239,7 +241,7 @@ class Potion_Speed final: public Potion {
             return 2;
         }
 
-        void MudarAbstrata() override {};
+        void interagir() override {};
 
     private:
 };
@@ -253,7 +255,7 @@ class Potion_Luck final: public Potion {
             return 3;
         }
 
-        void MudarAbstrata() override {};
+        void interagir() override {};
 
     private:
 };
@@ -267,7 +269,7 @@ class Potion_Mult final: public Potion {
             return 4;
         }
 
-        void MudarAbstrata() override {};
+        void interagir() override {};
 
     private:
 };
