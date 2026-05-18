@@ -809,15 +809,17 @@ void run_draw() {
     ClearBackground(BLACK);
     DrawTexture(inv.backgroundtexture, 0, 0, WHITE);
     DrawText(TextFormat("Fase: %d",runc.faseAtual),                  10, 10,  20, YELLOW);
-    DrawText(TextFormat("Inimigo: %s",runc.inimigo->Inimigo.getName().c_str()), 10, 35,  25, WHITE);
+    DrawText(TextFormat("Inimigo: %s",runc.inimigo->Inimigo.getName().c_str()), 10,35,  25, WHITE);
     DrawText(TextFormat("HP Player: %d",player.getLife()),                 10, 70,  30, GREEN);
     DrawText(TextFormat("HP Inimigo: %d",runc.inimigo->Inimigo.getHealth()),        10, 110, 30, RED);
     DrawText(TextFormat("Dano: %d",player.getDamage()+player.getAtributoforca()+bonuspocaodano),               10, 150, 20, WHITE);
     DrawText(TextFormat("Defesa: %d",player.getDefense()),              10, 175, 20, WHITE);
     DrawText(TextFormat("Attack Speed: %.1f", player.getAttackSpeed()-bonuspocaospeed),      10, 200, 20, WHITE);
     DrawText(TextFormat("Sorte: %d",player.getAtributosorte()+bonuspocaosorte),10,240,20,WHITE);
-
-    if(runc.inimigo->Inimigo.getAttackTimer() > runc.inimigo->Inimigo.getAttackSpeed()){
+    DrawText(TextFormat("Delay: %f",runc.inimigo->Inimigo.getAttackTimer()),10,280,20,WHITE);
+    if(player.getAttackSpeed()-player.getAttackTimer()<0.15){
+        DrawTextureEx(runc.inimigo->texturaD, Vector2{screenWidth/2-(float)(runc.inimigo->texturaP.width/2),screenHeight/2-(float)(runc.inimigo->texturaP.height/2)}, 0, 1, WHITE);
+    } else if(runc.inimigo->Inimigo.getAttackSpeed()-runc.inimigo->Inimigo.getAttackTimer()<0.2){
         DrawTextureEx(runc.inimigo->texturaA, Vector2{screenWidth/2-(float)(runc.inimigo->texturaP.width/2),screenHeight/2-(float)(runc.inimigo->texturaP.height/2)}, 0, 1, WHITE);
     } else{
         DrawTextureEx(runc.inimigo->texturaP, Vector2{screenWidth/2-(float)(runc.inimigo->texturaP.width/2),screenHeight/2-(float)(runc.inimigo->texturaP.height/2)}, 0, 1, WHITE);
