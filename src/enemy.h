@@ -2,6 +2,7 @@
 #define ENEMY_H
 #include <iostream>
 #include <string>
+#include "raylib.h"
 using namespace std;
 
 class Enemy final{
@@ -56,5 +57,15 @@ class Enemy final{
         void resetAttackTimer(){ attackTimer = 0.0f; }
 
 };
+
+typedef struct {
+    Enemy Inimigo;
+    Texture2D texturaP;
+    Texture2D texturaD;
+    Texture2D texturaA;
+    float scale;
+    int offsetX;
+    int offsetY;
+} InimigoComp;
 
 #endif

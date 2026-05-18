@@ -342,19 +342,19 @@ void PivotChecker(physicalObject& body, InventoryPivotPoint& ponto){
 struct RunContext {
     int faseAtual = 0;
     int contadorfases = 0;
-    Enemy* inimigo = nullptr;
+    InimigoComp* inimigo = nullptr;
     std::vector<b2BodyId> itensEquipadosIds;
 };
         
 RunContext runc;
 
-std::vector<Enemy*> tier1 = {&Regular, &Fast, &Tank};
-std::vector<Enemy*> tier2 = {&Juggernaut, &Archer, &Ninja};
-std::vector<Enemy*> tier3 = {&Colossus, &Knight, &Defender};
-std::vector<Enemy*> tier4 = {&Dragon};
+std::vector<InimigoComp*> tier1 = {&RegularComp, &FastComp, &TankComp};
+std::vector<InimigoComp*> tier2 = {&JuggernautComp, &ArcherComp, &NinjaComp};
+std::vector<InimigoComp*> tier3 = {&ColossusComp, &KnightComp, &DefenderComp};
+std::vector<InimigoComp*> tier4 = {&DragonComp};
 
-Enemy* getRandomEnemy(int fase) {
-    if(fase % 50 == 0 && fase > 0)return &Dragon;
+InimigoComp* getRandomEnemy(int fase) {
+    if(fase % 50 == 0 && fase > 0)return &DragonComp;
     else if((fase % 10)==0 && fase > 0)return tier3[GetRandomValue(0, tier3.size()-1)];
     else if((fase % 5)==0 &&  fase > 0)return tier2[GetRandomValue(0, tier2.size()-1)];
     else return tier1[GetRandomValue(0, tier1.size()-1)];
@@ -527,8 +527,8 @@ void run_init() {
     
     runc.faseAtual++;
     runc.inimigo = getRandomEnemy(runc.faseAtual);
-    runc.inimigo->setHealth(runc.inimigo->getHealthMax());
-    runc.inimigo->resetAttackTimer();
+    runc.inimigo->Inimigo.setHealth(runc.inimigo->Inimigo.getHealthMax());
+    runc.inimigo->Inimigo.resetAttackTimer();
     player.resetAttackTimer();
 }
 
@@ -687,7 +687,7 @@ void inventory_update(float dt) {
 
 void run_update(float dt) {
     if(runc.inimigo == nullptr) return;
-    BattleManager(dt, player, *runc.inimigo);
+    BattleManager(dt, player, runc.inimigo->Inimigo);
     
     if(player.getLife() <= 0){
     runc.faseAtual = 0;
@@ -747,8 +747,8 @@ void run_update(float dt) {
     return;
 }
             
-    if(runc.inimigo->getHealth() <= 0){
-        player.setXp(player.getXp()+runc.inimigo->getxpvalue());
+    if(runc.inimigo->Inimigo.getHealth() <= 0){
+        player.setXp(player.getXp()+runc.inimigo->Inimigo.getxpvalue());
 
         if(player.getXp()>=player.getxpfornextlevel()){
             player.setXp(player.getXp()-player.getxpfornextlevel());
@@ -759,7 +759,7 @@ void run_update(float dt) {
             cout << "LEVEL UP" << endl;
         }
 
-        int dif = runc.inimigo->getDifficulty();
+        int dif = runc.inimigo->Inimigo.getDifficulty();
         int quantidade = 1;
         if(dif == 1) quantidade = 1;
         if(dif == 2) quantidade = 2;
@@ -807,15 +807,22 @@ void run_draw() {
     if(runc.inimigo == nullptr) return;
 
     ClearBackground(BLACK);
+    DrawTexture(inv.backgroundtexture, 0, 0, WHITE);
     DrawText(TextFormat("Fase: %d",runc.faseAtual),                  10, 10,  20, YELLOW);
-    DrawText(TextFormat("Inimigo: %s",runc.inimigo->getName().c_str()), 10, 35,  25, WHITE);
+    DrawText(TextFormat("Inimigo: %s",runc.inimigo->Inimigo.getName().c_str()), 10, 35,  25, WHITE);
     DrawText(TextFormat("HP Player: %d",player.getLife()),                 10, 70,  30, GREEN);
-    DrawText(TextFormat("HP Inimigo: %d",runc.inimigo->getHealth()),        10, 110, 30, RED);
+    DrawText(TextFormat("HP Inimigo: %d",runc.inimigo->Inimigo.getHealth()),        10, 110, 30, RED);
     DrawText(TextFormat("Dano: %d",player.getDamage()+player.getAtributoforca()+bonuspocaodano),               10, 150, 20, WHITE);
     DrawText(TextFormat("Defesa: %d",player.getDefense()),              10, 175, 20, WHITE);
     DrawText(TextFormat("Attack Speed: %.1f", player.getAttackSpeed()-bonuspocaospeed),      10, 200, 20, WHITE);
     DrawText(TextFormat("Sorte: %d",player.getAtributosorte()+bonuspocaosorte),10,240,20,WHITE);
-    DrawText("ESC para voltar ao inventario", 10, screenHeight-30, 20, DARKGRAY);
+
+    if(runc.inimigo->Inimigo.getAttackTimer() > runc.inimigo->Inimigo.getAttackSpeed()){
+        DrawTextureEx(runc.inimigo->texturaA, Vector2{screenWidth/2-(float)(runc.inimigo->texturaP.width/2),screenHeight/2-(float)(runc.inimigo->texturaP.height/2)}, 0, 1, WHITE);
+    } else{
+        DrawTextureEx(runc.inimigo->texturaP, Vector2{screenWidth/2-(float)(runc.inimigo->texturaP.width/2),screenHeight/2-(float)(runc.inimigo->texturaP.height/2)}, 0, 1, WHITE);
+    }
+
 }
 
                     
@@ -826,7 +833,7 @@ int main() {
     InitWindow(screenWidth, screenHeight, "long prep");
     SetTargetFPS(60);
     InitItemList();
-    //OMG LINHA 670 QUE INCRIVEL
+    InitEnemyList();
     currentgamestage = inventory;
     inventory_init();
     
