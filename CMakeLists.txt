@@ -23,18 +23,56 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(box2d)
 
-add_executable(meu_jogo
-    src/main.cpp
-    src/item.cpp
-    src/player.cpp
-    src/itemlist.cpp
-    src/Equipament.cpp
-    src/player.cpp
-    src/enemy.cpp
-    src/enemylist.cpp
+# googletest
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.14.0
+)
+FetchContent_MakeAvailable(googletest)
+
+add_library(longprep_core
+    src/Item/item.cpp
+    src/Item/ItemList/itemlist.cpp
+    src/Player/player.cpp
+    src/Enemy/enemy.cpp
+    src/Enemy/EnemyList/enemylist.cpp
 )
 
-target_link_libraries(meu_jogo
+target_include_directories(longprep_core PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Item
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Item/ItemList
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Player
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Enemy
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Enemy/EnemyList
+)
+
+target_link_libraries(longprep_core
     raylib
     box2d
 )
+
+add_executable(meu_jogo
+    src/main.cpp
+)
+
+target_link_libraries(meu_jogo
+    longprep_core
+)
+
+enable_testing()
+
+add_executable(tests
+    tests/test_item.cpp
+    tests/test_player.cpp
+)
+
+target_link_libraries(tests
+    longprep_core
+    GTest::gtest
+    GTest::gtest_main
+)
+
+include(GoogleTest)
+gtest_discover_tests(tests)

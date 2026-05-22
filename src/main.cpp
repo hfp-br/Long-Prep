@@ -7,21 +7,20 @@
 #include "Equipament.h"
 #include "player.h"
 #include <asm-generic/errno.h>
-#include <concepts>
 #include <raylib.h>
 #include <box2d/box2d.h>
 #include <cmath>
 #include <iostream>
 #include <algorithm>
 #include <vector>
-#include <time.h>
 #include "enemylist.h"
 #define scale 10
 using namespace std;
+using namespace RPG;
 
 
 
-typedef enum GameStage{menu,config,inventory,run};
+enum GameStage{menu,config,inventory,run};
 GameStage currentgamestage;
 const int screenWidth = 1280*1.5;
 const int screenHeight = 720*1.5;
@@ -32,8 +31,8 @@ int bonuspocaomult=1;
 int bonuspocaodano=0;
 float bonuspocaospeed=0;
 int bonuspocaosorte=0;
-Ingredient* ingrediente1 = nullptr;
-Ingredient* ingrediente2 = nullptr;
+RPG::Ingredient* ingrediente1 = nullptr;
+RPG::Ingredient* ingrediente2 = nullptr;
 int ingredienteTipo1 = -1;
 int ingredienteTipo2 = -1;
 bool craftPendente = false;
@@ -78,29 +77,29 @@ void BattleManager(float dt, Player& player, Enemy& inimigo){
 void StatusUpdater(physicalObject& body){
 
     if(body.isEquipped && !body.wasEquipped){
-        Item* item = body.templateData.itemData->item;
+        RPG::Item* item = body.templateData.itemData->item;
         
-        Weapon* w = dynamic_cast<Weapon*>(item);
+        RPG::Weapon* w = dynamic_cast<RPG::Weapon*>(item);
         if(w){
             player.setDamage(player.getDamage() + w->getDamage()); // soma
             float base = w->getAttackSpeed();
             player.setBaseAttackSpeed(base);
             player.setAttackSpeed(max(0.1f, base - player.getAtributodestreza() * 0.05f - bonuspocaospeed));
         }
-        Armor* a = dynamic_cast<Armor*>(item);
+        RPG::Armor* a = dynamic_cast<RPG::Armor*>(item);
         if(a) player.setDefense(player.getDefense() + a->getDefense());
     }
 
     if(!body.isEquipped && body.wasEquipped){
-        Item* item = body.templateData.itemData->item;
+        RPG::Item* item = body.templateData.itemData->item;
         
-        Weapon* w = dynamic_cast<Weapon*>(item);
+        RPG::Weapon* w = dynamic_cast<RPG::Weapon*>(item);
         if(w){
             player.setDamage(player.getDamage() - w->getDamage()); // subtrai
             player.setBaseAttackSpeed(1.0f);
             player.setAttackSpeed(1.0f);
         }   
-        Armor* a = dynamic_cast<Armor*>(item);
+        RPG::Armor* a = dynamic_cast<RPG::Armor*>(item);
         if(a) player.setDefense(player.getDefense() - a->getDefense());
     }
 
@@ -189,7 +188,7 @@ InventoryContext inv;
 bool spawnedThisGame = false;
 
 void PotionCrafter(physicalObject& body){
-    Item* item = body.templateData.itemData->item;
+    RPG::Item* item = body.templateData.itemData->item;
     ICraftavel* craftavel = dynamic_cast<ICraftavel*>(item);
     if(!craftavel) return;
 
@@ -726,7 +725,7 @@ void run_update(float dt) {
     inv.TotalItems.erase(
         std::remove_if(inv.TotalItems.begin(), inv.TotalItems.end(),
             [&pocoesParaDestruir](physicalObject& obj){
-                Potion* p = dynamic_cast<Potion*>(obj.templateData.itemData->item);
+                RPG::Potion* p = dynamic_cast<RPG::Potion*>(obj.templateData.itemData->item);
                 if(p){
                     pocoesParaDestruir.push_back(obj.bodyId);
                     return true;
@@ -781,7 +780,7 @@ void run_update(float dt) {
         inv.TotalItems.erase(
             std::remove_if(inv.TotalItems.begin(), inv.TotalItems.end(),
                 [&pocoesParaDestruir](physicalObject& obj){
-                    Potion* p = dynamic_cast<Potion*>(obj.templateData.itemData->item);
+                    RPG::Potion* p = dynamic_cast<RPG::Potion*>(obj.templateData.itemData->item);
                     if(p){
                         pocoesParaDestruir.push_back(obj.bodyId);
                         return true;
@@ -827,6 +826,46 @@ void run_draw() {
 
 }
 
+void menu_init(){
+
+}
+
+void menu_update(){
+    Rectangle mouse = {(float)GetMouseX(),(float)GetMouseY(),10,10};
+
+    if(CheckCollisionRecs(mouse,(Rectangle){screenWidth/2-50,screenHeight/2-35,100,70})){
+        if(IsMouseButtonDown(0)){
+            inventory_init();
+            currentgamestage=inventory;
+        }
+    }
+}
+
+void menu_draw(){
+    Rectangle mouse = {(float)GetMouseX(),(float)GetMouseY(),10,10};
+    
+    if(CheckCollisionRecs(mouse,(Rectangle){screenWidth/2,screenHeight/2,100,70})){
+        DrawRectangleRec((Rectangle){screenWidth/2-50,screenHeight/2-35,100,70},GREEN);
+    } else {
+        DrawRectangleRec((Rectangle){screenWidth/2-50,screenHeight/2-35,100,70},RED);
+    }
+}
+
+
+void config_update(){
+    Rectangle mouse = {(float)GetMouseX(),(float)GetMouseY(),10,10};
+}
+
+void config_draw(){
+    Rectangle mouse = {(float)GetMouseX(),(float)GetMouseY(),10,10};
+    
+    if(CheckCollisionRecs(mouse,(Rectangle){screenWidth/2,screenHeight/2,100,70})){
+        DrawRectangleRec((Rectangle){screenWidth/2-50,screenHeight/2-35,100,70},GREEN);
+    } else {
+        DrawRectangleRec((Rectangle){screenWidth/2-50,screenHeight/2-35,100,70},RED);
+    }
+}
+
                     
 int main() {
     const int screenWidth  = 1280*1.5;
@@ -836,26 +875,26 @@ int main() {
     SetTargetFPS(60);
     InitItemList();
     InitEnemyList();
-    currentgamestage = inventory;
-    inventory_init();
+    currentgamestage = menu;
+    menu_init();
     
     while(!WindowShouldClose()) {
         float dt = GetFrameTime();
         
         switch(currentgamestage) {
-            case menu:                            break;
+            case menu:      menu_update();        break;
             case inventory: inventory_update(dt); break;
             case run:       run_update(dt);       break;
-            case config:                          break;
+            case config:    config_update();      break;
         }
         
         BeginDrawing();
         
         switch(currentgamestage) {
-            case menu:                          break;
+            case menu:      menu_draw();        break;
             case inventory: inventory_draw();   break;
             case run:       run_draw();         break;
-            case config:                        break;
+            case config:    config_draw();      break;
         }
 
         EndDrawing();

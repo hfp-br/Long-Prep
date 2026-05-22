@@ -21,7 +21,7 @@ struct physicalData {
 };
 
 struct ItemData {
-    Item* item;
+    RPG::Item* item;
 };
 
 struct ItemTemplate {

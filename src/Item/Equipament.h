@@ -1,9 +1,7 @@
 
 #ifndef EQUIPAMENT_H
 #define EQUIPAMENT_H
-#include "raylib.h"
 #include "box2d/id.h"
-#include "item.h"
 
 enum itemCategory { head, chest, hand,handleft,handright, waist, feet, accessory };
 

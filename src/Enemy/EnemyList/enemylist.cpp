@@ -1,4 +1,3 @@
-#include <iostream>
 #include <string>
 #include "enemy.h"
 #include "raylib.h"
@@ -59,8 +58,8 @@ void InitEnemyList() {
     
     //COLOSSUS
     ColossusComp.texturaP=LoadTexture("images/enemy/ColossusP.png");
-    ColossusComp.texturaD=LoadTexture("images/enemy/ColossusD.png");
-    ColossusComp.texturaA=LoadTexture("images/enemy/ColossusA.png");
+    ColossusComp.texturaD=LoadTexture("images/enemy/colossusD.png");
+    ColossusComp.texturaA=LoadTexture("images/enemy/colossusA.png");
     
     //KNIGHT
     KnightComp.texturaP=LoadTexture("images/enemy/knightP.png");
