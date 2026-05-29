@@ -1,7 +1,24 @@
+/**
+ * @file itemlist.cpp
+ * @author Heitor Farias Piza (hpiza@alunos.utfpr.edu.br) e Felipe de Ornellas Tonin (felipetonin@alunos.utfpr.edu.br)
+ * @brief Este arquivo define todos os templates e texturas dos itens do Long Prep, para saber mais sobre sua separacao veja itemlist.h
+ * @version 0.1
+ * @date 2026-05-25
+ * 
+ * @copyright Copyright (c) 2026
+ * 
+ */
+
 #include "itemlist.h"
 #include "Equipament.h"
 #include "item.h"
 #include "raylib.h"
+
+// cada bloco cria:
+// 1. o objeto real do item
+// 2. os dados logicos do item
+// 3. os dados fisicos/visuais do item
+// 4. o template final usado pelo jogo
 
 // ===== ESPADAS ===== 
 RPG::Weapon espadacurtaweapon("Espada Curta", 0.4f, 2, true, false, 5, 3, sword, 1.0f, common);
@@ -84,7 +101,7 @@ ItemTemplate arcolend = {&arcolendData, &arcolendPhysical};
 // ===== CAPACETES =====
 RPG::Armor capacetecomumArmor("Capacete de Ferro", 0.8f, 2, true, false, 3, common);
 ItemData capacetecomumData = {&capacetecomumArmor};
-physicalData capacetecomumPhysical = {{0}, 100*0.8, 124*0.8, 0, false, 60*0.8, 144*0.8, head};
+physicalData capacetecomumPhysical = {{0}, 100*0.8, 124*0.8, 0, false, 120*0.8, 144*0.8, head};
 ItemTemplate capacetecomum = {&capacetecomumData, &capacetecomumPhysical};
 
 RPG::Armor capaceteUCArmor("Capacete Rebitado", 0.9f, 2, true, false, 6, uncommon);
@@ -94,7 +111,7 @@ ItemTemplate capaceteUC = {&capaceteUCData, &capaceteUCPhysical};
 
 RPG::Armor capaceterareArmor("Capacete de Aço", 1.2f, 3, true, false, 13, rare);
 ItemData capaceterareData = {&capaceterareArmor};
-physicalData capaceterarePhysical = {{0}, 80*0.8, 164*0.8, 0, false, 65*0.8, 164*0.8, head};
+physicalData capaceterarePhysical = {{0}, 80*0.8, 164*0.8, 0, false, 130*0.8, 164*0.8, head};
 ItemTemplate capaceterare = {&capaceterareData, &capaceterarePhysical};
 
 RPG::Armor capaceteEPArmor("Capacete Encantado", 1.4f, 3, true, false, 15, epic);
@@ -110,7 +127,7 @@ ItemTemplate capacetelegend = {&capacetelegendData, &capacetelegendPhysical};
 // ===== PEITORAIS =====
 RPG::Armor coletecomumArmor("Colete de Couro", 0.5f, 3, true, false, 5, common);
 ItemData coletecomumData = {&coletecomumArmor};
-physicalData coletecomumPhysical = {{0}, 110, 157*1.1, 0, false, 80, 157*1.1, chest};
+physicalData coletecomumPhysical = {{0}, 110, 157*1.1, 0, false, 160, 157*1.1, chest};
 ItemTemplate coletecomum = {&coletecomumData, &coletecomumPhysical};
 
 RPG::Armor coleteUCArmor("Colete Reforçado", 0.7f, 3, true, false, 14, uncommon);
@@ -120,7 +137,7 @@ ItemTemplate coleteUC = {&coleteUCData, &coleteUCPhysical};
 
 RPG::Armor coterareArmor("Cota de Malha", 1.5f, 4, true, false, 25, rare);
 ItemData coterareData = {&coterareArmor};
-physicalData coterarePhysical = {{0}, 110, 162*1.1, 0, false, 85, 162*1.1, chest};
+physicalData coterarePhysical = {{0}, 110, 162*1.1, 0, false, 170, 162*1.1, chest};
 ItemTemplate coterare = {&coterareData, &coterarePhysical};
 
 RPG::Armor coteEPArmor("Cota Encantada", 1.8f, 4, true, false, 45, epic);
@@ -136,7 +153,7 @@ ItemTemplate cotelegend = {&cotelegendData, &cotelegendPhysical};
 // ===== CINTURAS =====
 RPG::Armor cintocomumArmor("Cinto de Couro", 0.4f, 1, true, false, 1, common);
 ItemData cintocomumData = {&cintocomumArmor};
-physicalData cintocomumPhysical = {{0}, 190*0.6, 30*0.6, 0, false, 100*0.6, 70*0.6, waist};
+physicalData cintocomumPhysical = {{0}, 190*0.6, 30*0.6, 0, false, 200*0.6, 70*0.6, waist};
 ItemTemplate cintocomum = {&cintocomumData, &cintocomumPhysical};
 
 RPG::Armor cintoUCArmor("Cinto Reforçado", 0.4f, 1, true, false, 2, uncommon);
@@ -146,7 +163,7 @@ ItemTemplate cintoUC = {&cintoUCData, &cintoUCPhysical};
 
 RPG::Armor cintorareArmor("Cinto de Escamas", 0.5f, 2, true, false, 6, rare);
 ItemData cintorareData = {&cintorareArmor};
-physicalData cintorarePhysical = {{0}, 200*0.6, 50*0.6, 0, false, 105*0.6, 57*0.6, waist};
+physicalData cintorarePhysical = {{0}, 200*0.6, 50*0.6, 0, false, 210*0.6, 57*0.6, waist};
 ItemTemplate cintorare = {&cintorareData, &cintorarePhysical};
 
 RPG::Armor cintoEPArmor("Cinto do Guardião", 0.7f, 2, true, false, 7, epic);
@@ -162,7 +179,7 @@ ItemTemplate cintolend = {&cintolendData, &cintolendPhysical};
 // ===== BOTAS =====
 RPG::Armor botascomumArmor("Botas de Couro", 0.4f, 2, true, false, 1, common);
 ItemData botascomumData = {&botascomumArmor};
-physicalData botascomumPhysical = {{0}, 100*0.7, 115*0.7, 0, false, 65*0.7, 115*0.7, feet};
+physicalData botascomumPhysical = {{0}, 100*0.7, 115*0.7, 0, false, 130*0.7, 115*0.7, feet};
 ItemTemplate botascomum = {&botascomumData, &botascomumPhysical};
 
 RPG::Armor botasUCArmor("Botas Reforçadas", 0.4f, 2, true, false, 3, uncommon);
@@ -172,7 +189,7 @@ ItemTemplate botasUC = {&botasUCData, &botasUCPhysical};
 
 RPG::Armor botasrareArmor("Botas de Ferro", 0.8f, 3, true, false, 6, rare);
 ItemData botasrareData = {&botasrareArmor};
-physicalData botasrarePhysical = {{0}, 120*0.7, 123*0.7, 0, false, 701*0.7, 123*0.7, feet};
+physicalData botasrarePhysical = {{0}, 120*0.7, 123*0.7, 0, false, 140*0.7, 123*0.7, feet};
 ItemTemplate botasrare = {&botasrareData, &botasrarePhysical};
 
 RPG::Armor botasEPArmor("Botas de Aço", 1.0f, 3, true, false, 8, epic);

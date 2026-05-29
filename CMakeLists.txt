@@ -7,6 +7,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(FetchContent)
 
+#SQLite
+find_package(SQLite3 REQUIRED)
+
 # raylib
 FetchContent_Declare(
     raylib
@@ -37,6 +40,7 @@ add_library(longprep_core
     src/Player/player.cpp
     src/Enemy/enemy.cpp
     src/Enemy/EnemyList/enemylist.cpp
+    src/SaveManager/saveManager.cpp
 )
 
 target_include_directories(longprep_core PUBLIC
@@ -46,11 +50,13 @@ target_include_directories(longprep_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Player
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Enemy
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Enemy/EnemyList
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/SaveManager
 )
 
 target_link_libraries(longprep_core
     raylib
     box2d
+    SQLite::SQLite3
 )
 
 add_executable(meu_jogo
