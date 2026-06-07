@@ -23,6 +23,7 @@
 #include "raylib.h"
 #include "box2d/id.h"
 #include "item.h"
+#include "box2d/types.h"
 
 
 //==================== FUNCOES ====================//
@@ -191,5 +192,10 @@ extern ItemTemplate pocaoVida;
 extern ItemTemplate pocaoSpeed;
 extern ItemTemplate pocaoLuck;
 extern ItemTemplate pocaoMult;
+
+class ItemFactory {
+public:
+    static physicalObject criarItem(b2WorldId world,ItemTemplate& templ,float xP,float yP,b2BodyType type);
+};
 
 #endif

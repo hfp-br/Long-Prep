@@ -20,11 +20,11 @@ TEST(PlayerTest, ConstrutorGuardaValoresCorretamente) {
 
     atributes atributos{5, 4, 3, 2, 1};
 
-    Player player("Heroi", 20, 20, 6, 30.0f, true, true, 2, atributos);
+    Mago player("Heroi", 20, 20, 6, 30.0f, true, true, 2, atributos);
 
     EXPECT_EQ(player.getName(), "Heroi");
     EXPECT_EQ(player.getLife(), 20);
-    EXPECT_EQ(player.getLife_max(), 20);
+    EXPECT_EQ(player.getLifeMax(), 20);
     EXPECT_EQ(player.getDamage(), 6);
     EXPECT_FLOAT_EQ(player.getWeight_Capacity(), 30.0f);
     EXPECT_TRUE(player.isBackpack());
@@ -46,7 +46,7 @@ TEST(PlayerTest, VidaNaoPassaDoMaximo) {
 
     atributes atributos{1, 1, 1, 1, 1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
 
     player.setLife(25);
 
@@ -58,7 +58,7 @@ TEST(PlayerTest, VidaNegativaViraZero) {
 
     atributes atributos{1, 1, 1, 1, 1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
 
     player.setLife(-5);
 
@@ -73,7 +73,7 @@ TEST(PlayerTest, AttackSpeedInvalidoViraPadrao) {
 
     atributes atributos{1, 1, 1, 1, 1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
 
     player.setAttackSpeed(-2.0f);
 
@@ -85,7 +85,7 @@ TEST(PlayerTest, AttackTimerAcumulaEReseta) {
 
     atributes atributos{1,1,1,1,1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
 
     // acumula tempo de ataque
     player.tickAttackTimer(0.5f);
@@ -104,7 +104,7 @@ TEST(PlayerTest, BaseAttackSpeedAtualiza) {
 
     atributes atributos{1,1,1,1,1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
 
     player.setBaseAttackSpeed(0.8f);
 
@@ -116,7 +116,7 @@ TEST(PlayerTest, BaseAttackSpeedInvalidoViraPadrao) {
 
     atributes atributos{1,1,1,1,1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
 
     player.setBaseAttackSpeed(-1.0f);
 
@@ -131,7 +131,7 @@ TEST(PlayerTest, AtributosAtualizam) {
 
     atributes atributos{1,1,1,1,1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
 
     player.setAtributoforca(10);
     player.setAtributodestreza(8);
@@ -154,7 +154,7 @@ TEST(PlayerTest, LevelEXpAtualizam) {
 
     atributes atributos{1,1,1,1,1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
 
     player.setlevel(5);
     player.setXp(100);
@@ -168,7 +168,7 @@ TEST(PlayerTest, XpForNextLevelAtualiza) {
 
     atributes atributos{1,1,1,1,1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
 
     player.setxpfornextlevel(50);
 
@@ -180,7 +180,7 @@ TEST(PlayerTest, UnspentPointsAtualizam) {
 
     atributes atributos{1,1,1,1,1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
 
     player.setunspentpoints(3);
 
@@ -195,7 +195,7 @@ TEST(PlayerTest, SetDamageAtualiza) {
 
     atributes atributos{1,1,1,1,1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
     
     player.setDamage(15);
 
@@ -207,7 +207,7 @@ TEST(PlayerTest, DefesaAtualiza) {
 
     atributes atributos{1,1,1,1,1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
 
     player.setDefense(10);
 
@@ -222,7 +222,7 @@ TEST(PlayerTest, PesoAtualiza) {
 
     atributes atributos{1,1,1,1,1};
 
-    Player player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
+    Mago player("Heroi", 10, 20, 5, 30.0f, true, true, 0, atributos);
 
     player.setcurrent_weight(7.5f);
 

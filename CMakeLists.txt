@@ -37,19 +37,22 @@ FetchContent_MakeAvailable(googletest)
 add_library(longprep_core
     src/Item/item.cpp
     src/Item/ItemList/itemlist.cpp
-    src/Player/player.cpp
-    src/Enemy/enemy.cpp
-    src/Enemy/EnemyList/enemylist.cpp
+    src/Entities/Player/player.cpp
+    src/Entities/Entity.cpp
+    src/Entities/Enemy/enemy.cpp
+    src/Entities/Enemy/EnemyList/enemylist.cpp
     src/SaveManager/saveManager.cpp
+    src/battleManager.cpp
 )
 
 target_include_directories(longprep_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Item
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Item/ItemList
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Player
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Enemy
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Enemy/EnemyList
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Entities
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Entities/Player
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Entities/Enemy
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Entities/Enemy/EnemyList
     ${CMAKE_CURRENT_SOURCE_DIR}/src/SaveManager
 )
 

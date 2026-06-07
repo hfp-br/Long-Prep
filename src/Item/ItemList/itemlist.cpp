@@ -13,6 +13,9 @@
 #include "Equipament.h"
 #include "item.h"
 #include "raylib.h"
+#include "box2d/box2d.h"
+
+int scale = 10;
 
 // cada bloco cria:
 // 1. o objeto real do item
@@ -399,4 +402,47 @@ void InitItemList() {
     SetTextureFilter(anelorarePhysical.texture,      TEXTURE_FILTER_BILINEAR);
     SetTextureFilter(aneloEPPhysical.texture,        TEXTURE_FILTER_BILINEAR);
     SetTextureFilter(anelolendPhysical.texture,      TEXTURE_FILTER_BILINEAR);
+}
+
+physicalObject ItemFactory::criarItem(b2WorldId world,ItemTemplate& templ,float xP,float yP,b2BodyType type){
+    b2BodyDef bodyDef = b2DefaultBodyDef();
+    bodyDef.position = {(xP) / scale, (yP) / scale};
+    bodyDef.type = type;
+
+    physicalObject Item;
+    b2BodyId bodyId = b2CreateBody(world, &bodyDef);
+
+    if(!templ.itemPhysical->isCircle){
+        b2Polygon bodyBox = b2MakeBox(
+            (templ.itemPhysical->width / 2) / scale,
+            (templ.itemPhysical->height / 2) / scale
+        );
+
+        b2ShapeDef bodyshapeDef = b2DefaultShapeDef();
+        bodyshapeDef.filter.categoryBits = CAT_ITEM;
+        bodyshapeDef.filter.maskBits = CAT_PAREDE | CAT_ITEM;
+        bodyshapeDef.density = 1.0f;
+
+        Item.shapeId = b2CreatePolygonShape(bodyId, &bodyshapeDef, &bodyBox);
+    }
+    else {
+        b2Circle circle;
+        circle.center = {0.0f, 0.0f};
+        circle.radius = templ.itemPhysical->radius / scale;
+
+        b2ShapeDef ballshapeDef = b2DefaultShapeDef();
+        ballshapeDef.filter.categoryBits = CAT_ITEM;
+        ballshapeDef.filter.maskBits = CAT_PAREDE | CAT_ITEM;
+        ballshapeDef.density = 1.0f;
+
+        Item.shapeId = b2CreateCircleShape(bodyId, &ballshapeDef, &circle);
+    }
+
+    Item.isWall = false;
+    Item.isGrabbed = false;
+    Item.templateData.itemPhysical = templ.itemPhysical;
+    Item.templateData.itemData = templ.itemData;
+    Item.bodyId = bodyId;
+
+    return Item;
 }
