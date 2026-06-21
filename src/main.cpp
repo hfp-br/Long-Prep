@@ -56,6 +56,7 @@ int craftT1 = -1, craftT2 = -1;
 b2BodyId craftBodyT1 = b2_nullBodyId;
 b2BodyId craftBodyT2 = b2_nullBodyId;
 static Font FonteBonita;
+Texture2D classesTexture;
 
 
 void StatusUpdater(physicalObject& body){
@@ -979,31 +980,43 @@ void run_draw() {
 
 void menu_init(){
     iniciarSaveManager();
+    inv.backgroundimage = LoadImage("images/fundo.png");
+
+    ImageFormat(&inv.backgroundimage, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    inv.backgroundtexture = LoadTextureFromImage(inv.backgroundimage);
+    ImageBlurGaussian(&inv.backgroundimage, 10);
+    Color* pixels = LoadImageColors(inv.backgroundimage);
+    UpdateTexture(inv.backgroundtexture, pixels);
+    UnloadImageColors(pixels);
+
+    classesTexture=LoadTexture("images/classes.png");
 }
 
-void menu_update(){
-    if(IsKeyPressed(KEY_ONE)){
+void menu_update(int dt){
+    Rectangle MouseHitbox = (Rectangle){(float)GetMouseX(),(float)GetMouseY(),5,5};
+
+    if(IsKeyPressed(KEY_ONE) || (CheckCollisionRecs(MouseHitbox,(Rectangle){screenWidth/2-700+(float)dt,screenHeight/2-255+(float)dt,250,400}) && IsMouseButtonPressed(0))){
         player = PlayerFactory::criarPlayer(1);
         attackStrategy = std::make_unique<GuerreiroAttack>();
         inventory_init();
         currentgamestage = inventory;
     }
 
-    if(IsKeyPressed(KEY_TWO)){
+    if(IsKeyPressed(KEY_TWO) || (CheckCollisionRecs(MouseHitbox,(Rectangle){screenWidth/2-295+(float)dt,screenHeight/2-255+(float)dt,250,400}) && IsMouseButtonPressed(0))){
         player = PlayerFactory::criarPlayer(2);
         attackStrategy = std::make_unique<MagoAttack>();
         inventory_init();
         currentgamestage = inventory;
     }
 
-    if(IsKeyPressed(KEY_THREE)){
+    if(IsKeyPressed(KEY_THREE) || (CheckCollisionRecs(MouseHitbox,(Rectangle){screenWidth/2+115+(float)dt,screenHeight/2-255+(float)dt,250,400}) && IsMouseButtonPressed(0))){
         player = PlayerFactory::criarPlayer(3);
         attackStrategy = std::make_unique<CurandeiroAttack>();
         inventory_init();
         currentgamestage = inventory;
     }
 
-    if(IsKeyPressed(KEY_FOUR)){
+    if(IsKeyPressed(KEY_FOUR) || (CheckCollisionRecs(MouseHitbox,(Rectangle){screenWidth/2+500+(float)dt,screenHeight/2-255+(float)dt,250,400}) && IsMouseButtonPressed(0))){
         player = PlayerFactory::criarPlayer(4);
         attackStrategy = std::make_unique<LadraoAttack>();
         inventory_init();
@@ -1011,7 +1024,19 @@ void menu_update(){
     }
 }
 
-void menu_draw(){
+void menu_draw(int dt){
+    DrawTexture(inv.backgroundtexture, 0, 0, WHITE);
+    DrawTexturePro(classesTexture,(Rectangle){40,0,360,800},(Rectangle){screenWidth/2-700+(float)dt,screenHeight/2-400+(float)dt,260,600},(Vector2){0,0},0,WHITE);
+    DrawTexturePro(classesTexture,(Rectangle){400,0,360,800},(Rectangle){screenWidth/2-300+(float)dt,screenHeight/2-400+(float)dt,260,600},(Vector2){0,0},0,WHITE);
+    DrawTexturePro(classesTexture,(Rectangle){760,0,360,800},(Rectangle){screenWidth/2+100+(float)dt,screenHeight/2-400+(float)dt,260,600},(Vector2){0,0},0,WHITE);
+    DrawTexturePro(classesTexture,(Rectangle){1150,0,360,800},(Rectangle){screenWidth/2+500+(float)dt,screenHeight/2-400+(float)dt,260,600},(Vector2){0,0},0,WHITE);
+
+    /*
+    DrawRectangleRec((Rectangle){screenWidth/2-700+(float)dt,screenHeight/2-255+(float)dt,250,400},(Color){255,255,255,150});
+    DrawRectangleRec((Rectangle){screenWidth/2-295+(float)dt,screenHeight/2-255+(float)dt,250,400},(Color){255,255,255,150});
+    DrawRectangleRec((Rectangle){screenWidth/2+115+(float)dt,screenHeight/2-255+(float)dt,250,400},(Color){255,255,255,150});
+    DrawRectangleRec((Rectangle){screenWidth/2+500+(float)dt,screenHeight/2-255+(float)dt,250,400},(Color){255,255,255,150});
+    */
 }
 
 
@@ -1029,6 +1054,10 @@ int main() {
     const int screenHeight = 720*1.5;
     
     InitWindow(screenWidth, screenHeight, "long prep");
+    SetWindowMonitor(0);
+    SetWindowPosition(0, 0);
+    SetWindowSize(screenWidth, screenHeight);
+
     SetTargetFPS(60);
     InitItemList();
     InitEnemyList();
@@ -1039,7 +1068,7 @@ int main() {
         float dt = GetFrameTime();
         
         switch(currentgamestage) {
-            case menu:      menu_update();        break;
+            case menu:      menu_update(dt);        break;
             case inventory: inventory_update(dt); break;
             case run:       run_update(dt);       break;
             case config:    config_update();      break;
@@ -1048,7 +1077,7 @@ int main() {
         BeginDrawing();
         
         switch(currentgamestage) {
-            case menu:      menu_draw();        break;
+            case menu:      menu_draw(dt);        break;
             case inventory: inventory_draw();   break;
             case run:       run_draw();         break;
             case config:    config_draw();      break;
