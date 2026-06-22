@@ -974,7 +974,7 @@ void run_draw() {
     DrawTextEx(FonteBonita,TextFormat("Dano Player: %d",attackStrategy->calcularDano(*player,runc.inimigo->Inimigo)),(Vector2){160,430}, 30,5, (Color){45, 26, 14, 255});
     DrawTextEx(FonteBonita,TextFormat("Defesa Player: %d",player->getDefense()),(Vector2){160,470}, 30,5, (Color){45, 26, 14, 255});
     DrawTextEx(FonteBonita,TextFormat("HP Inimigo: %d",runc.inimigo->Inimigo.getLife()),(Vector2){160,550}, 30,5, (Color){45, 26, 14, 255});
-    DrawTextEx(FonteBonita,TextFormat("Dano Inimigo: %.1f",runc.inimigo->Inimigo.getDamage()),(Vector2){160,590}, 30,5, (Color){45, 26, 14, 255});
+    DrawTextEx(FonteBonita,TextFormat("Dano Inimigo: %.1f",(float)runc.inimigo->Inimigo.getDamage()),(Vector2){160,590}, 30,5, (Color){45, 26, 14, 255});
     DrawTextEx(FonteBonita,TextFormat("Defesa Inimigo: %d",runc.inimigo->Inimigo.getDefense()),(Vector2){160,630}, 30,5, (Color){45, 26, 14, 255});
 }
 
